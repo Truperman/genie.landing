@@ -142,8 +142,8 @@
 
   .orb-wrap{ margin-top: 74px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .orb-wrap::before{ content:''; position:absolute; width:min(420px,78vw); height:min(420px,78vw);
-    background: radial-gradient(circle closest-side, oklch(0.74 0.19 272 / 0.32) 0%, oklch(0.78 0.15 210 / 0.1) 45%, transparent 100%);
-    filter: blur(10px); pointer-events:none; z-index:0; }
+    background: radial-gradient(circle closest-side, oklch(0.74 0.19 272 / 0.15) 0%, oklch(0.78 0.15 210 / 0.05) 45%, transparent 100%);
+    filter: blur(14px); pointer-events:none; z-index:0; }
   #orb{ position:relative; z-index:1; display:block; cursor: default; }
   canvas#orb{ width: min(300px, 60vw); height: min(300px, 60vw); }
   .orb-hud{ position:relative; z-index:1; margin-top:22px; display:flex; align-items:center; justify-content:center; gap:8px;
@@ -987,21 +987,39 @@ async function submitOnboarding(e){
   resize();
   window.addEventListener('resize', resize);
 
-  // drifting signal dots — sparse, slow, techy "network" points rather than a busy starfield
-  const DOTS = Array.from({length: 46}, () => ({
-    x: Math.random(), y: Math.random(),
-    r: 0.6 + Math.random()*1.3,
-    vy: 0.00006 + Math.random()*0.00012,
-    phase: Math.random()*Math.PI*2,
-    hue: Math.random() < 0.72 ? '126,232,250' : '255,201,92',
-  }));
+  // subtle mouse-linked drift on the vanishing point — the whole grid leans very slightly
+  // toward the cursor, reinforcing depth without ever feeling like a tracked 3D scene
+  let mx = 0, my = 0, mxT = 0, myT = 0;
+  if (!reduced){
+    window.addEventListener('pointermove', (e) => {
+      mxT = (e.clientX / window.innerWidth) * 2 - 1;
+      myT = (e.clientY / window.innerHeight) * 2 - 1;
+    }, { passive: true });
+  }
+
+  // drifting signal dots on two depth layers — near dots bigger/faster/brighter, far dots
+  // smaller/slower/dimmer, so the field reads as actual depth rather than a flat sprinkle
+  function makeDots(n, layer){
+    return Array.from({length: n}, () => ({
+      x: Math.random(), y: Math.random(),
+      r: layer === 'near' ? 1.1 + Math.random()*1.6 : 0.5 + Math.random()*0.9,
+      vy: (layer === 'near' ? 0.00014 : 0.00006) + Math.random()*0.00008,
+      phase: Math.random()*Math.PI*2,
+      hue: Math.random() < 0.72 ? '126,232,250' : '255,201,92',
+      layer,
+    }));
+  }
+  const DOTS = [...makeDots(28, 'far'), ...makeDots(22, 'near')];
 
   let t = 0;
   function draw(){
     ctx.clearRect(0,0,w,h);
+    mx += (mxT - mx) * 0.03;
+    my += (myT - my) * 0.03;
 
-    // perspective grid — vanishing toward a point above the hero, slow vertical drift
-    const vpX = w*0.5, vpY = h*-0.35;
+    // perspective grid — vanishing toward a point above the hero, slow vertical drift,
+    // gentle horizontal lean toward the cursor
+    const vpX = w*0.5 + mx*w*0.04, vpY = h*-0.35 + my*h*0.02;
     const gridColor = 'rgba(126,232,250,0.055)';
     ctx.strokeStyle = gridColor; ctx.lineWidth = 1;
     const cols = 13;
@@ -1028,10 +1046,28 @@ async function submitOnboarding(e){
     }
     ctx.globalAlpha = 1;
 
-    // drifting signal dots with soft glow, gently rising
+    // slow diagonal light sweep — a wide, very soft band drifting across the whole backdrop
+    // over roughly a minute, like light slowly crossing a room. The single biggest "alive"
+    // cue in the backdrop, and cheap since it's one gradient fill per frame.
+    if (!reduced){
+      const sweepPos = ((t*0.0006) % 1.6) - 0.3;
+      const sx = w * sweepPos;
+      ctx.save();
+      const sweep = ctx.createLinearGradient(sx - w*0.35, 0, sx + w*0.35, h*0.6);
+      sweep.addColorStop(0,   'rgba(163,180,255,0)');
+      sweep.addColorStop(0.5, 'rgba(163,180,255,0.05)');
+      sweep.addColorStop(1,   'rgba(163,180,255,0)');
+      ctx.fillStyle = sweep;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
+
+    // drifting signal dots with soft glow, gently rising, near layer slightly parallaxed by cursor
     for (const d of DOTS){
       const y = reduced ? d.y : ((d.y - t*d.vy) % 1 + 1) % 1;
-      const px = d.x * w, py = y * h;
+      const parX = d.layer === 'near' ? mx * 14 : mx * 4;
+      const parY = d.layer === 'near' ? my * 14 : my * 4;
+      const px = d.x * w + parX, py = y * h + parY;
       const twinkle = reduced ? 0.55 : 0.4 + Math.sin(t*0.02 + d.phase)*0.3;
       ctx.beginPath();
       const g = ctx.createRadialGradient(px, py, 0, px, py, d.r*5);
@@ -1208,28 +1244,23 @@ async function submitOnboarding(e){
 
     ctx.globalCompositeOperation = 'lighter';
 
-    // wide multicolor bloom — violet + cyan + a hint of gold, additive for extra flash
-    const glowA = ctx.createRadialGradient(cx, cy, r*0.1, cx, cy, glowMaxR);
-    glowA.addColorStop(0,    `rgba(${VIOLET},${0.5*flicker})`);
-    glowA.addColorStop(0.3,  `rgba(${CYAN},${0.22*flicker})`);
-    glowA.addColorStop(0.6,  `rgba(${GOLD},${0.08*flicker})`);
+    // soft ambient bloom — much lower key than before; a hint of color cast in the air
+    // around the glass rather than a bright cartoon aura. Real glass throws a faint glow,
+    // it doesn't broadcast neon.
+    const glowA = ctx.createRadialGradient(cx, cy, r*0.3, cx, cy, glowMaxR);
+    glowA.addColorStop(0,    `rgba(${VIOLET},${0.16*flicker})`);
+    glowA.addColorStop(0.35, `rgba(${CYAN},${0.07*flicker})`);
+    glowA.addColorStop(0.65, `rgba(${GOLD},${0.025*flicker})`);
     glowA.addColorStop(1,    `rgba(${GOLD},0)`);
     ctx.fillStyle = glowA;
     ctx.fillRect(0,0,w,h);
 
-    // tight cyan neon rim bloom, tube-like — follows the blob outline, not a fixed circle
+    // thin edge glow — just enough to separate the sphere from the dark backdrop,
+    // not a thick glowing tube. Reads as light catching a curved edge, not a light source.
     ctx.save();
-    ctx.filter = 'blur(7px)';
-    ctx.strokeStyle = `rgba(${CYAN},${0.5*flicker})`;
-    ctx.lineWidth = r*0.5;
-    ctx.stroke(path);
-    ctx.restore();
-
-    // thin gold neon rim, slightly inside the cyan one (echoes the logo's dual-color glow)
-    ctx.save();
-    ctx.filter = 'blur(4px)';
-    ctx.strokeStyle = `rgba(${GOLD},${0.38*flicker})`;
-    ctx.lineWidth = r*0.16;
+    ctx.filter = 'blur(3px)';
+    ctx.strokeStyle = `rgba(${CYAN},${0.22*flicker})`;
+    ctx.lineWidth = r*0.05;
     ctx.stroke(path);
     ctx.restore();
 
@@ -1275,8 +1306,24 @@ async function submitOnboarding(e){
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
 
-    // ---- techy holographic wireframe: rotating latitude/longitude grid, like a scanned globe ----
-    ctx.lineWidth = Math.max(1, r*0.006);
+    // reflected "window light" band — a soft, slightly tilted bright streak crossing the
+    // upper glass, the way a real glass/liquid sphere picks up a reflection of its
+    // environment (a window, a screen) rather than glowing from within.
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-0.5);
+    const envBand = ctx.createLinearGradient(-r, 0, r, 0);
+    envBand.addColorStop(0,    'rgba(255,255,255,0)');
+    envBand.addColorStop(0.42, 'rgba(255,255,255,0.05)');
+    envBand.addColorStop(0.5,  'rgba(255,255,255,0.16)');
+    envBand.addColorStop(0.58, 'rgba(255,255,255,0.05)');
+    envBand.addColorStop(1,    'rgba(255,255,255,0)');
+    ctx.fillStyle = envBand;
+    ctx.fillRect(-r, -r*0.62, r*2, r*0.4);
+    ctx.restore();
+
+    // ---- faint etched surface grid: much closer to real ground-glass etching than a glowing HUD ----
+    ctx.lineWidth = Math.max(0.6, r*0.0035);
     // longitude lines — vertical great circles, foreshortened by rotation phase. Lines facing the
     // viewer are brighter, lines edge-on (near-vertical squash) fade toward the limb — a real depth cue.
     const spin = reduced ? 0 : t*0.012;
@@ -1284,12 +1331,12 @@ async function submitOnboarding(e){
       const phase = spin + i * Math.PI / 6;
       const squash = Math.abs(Math.cos(phase));
       if (squash < 0.04) continue;
-      ctx.strokeStyle = `rgba(${CYAN},${(0.14 + squash*0.32)*flicker})`;
+      ctx.strokeStyle = `rgba(${CYAN},${(0.04 + squash*0.1)*flicker})`;
       ctx.beginPath();
       ctx.ellipse(cx, cy, r*squash, r, 0, 0, Math.PI*2);
       ctx.stroke();
     }
-    ctx.strokeStyle = `rgba(${CYAN},${0.32*flicker})`;
+    ctx.strokeStyle = `rgba(${CYAN},${0.09*flicker})`;
     // latitude lines — horizontal parallels, fixed rings top/bottom of center
     for (let i = -2; i <= 2; i++){
       if (i === 0) continue;
@@ -1343,83 +1390,74 @@ async function submitOnboarding(e){
     }
     ctx.globalCompositeOperation = 'source-over';
 
-    // bright glass specular highlight — the "3D" cue, sharper/tighter core for more clarity,
-    // drifts very slightly for a liquid, watching feel
+    // bright glass specular highlight — the "3D" cue. Tighter, less blown-out than a cartoon
+    // shine sticker: a real hard highlight falls off fast and doesn't dominate a large area.
     const specX = cx + r*lightOx + Math.sin(t*0.02)*r*0.03;
     const specY = cy + r*lightOy + Math.cos(t*0.017)*r*0.025;
     ctx.beginPath();
-    ctx.ellipse(specX, specY, r*0.2, r*0.12, -0.6, 0, Math.PI*2);
-    const spec = ctx.createRadialGradient(specX, specY, 0, specX, specY, r*0.2);
-    spec.addColorStop(0, 'rgba(255,255,255,0.98)');
-    spec.addColorStop(0.5, 'rgba(255,255,255,0.5)');
+    ctx.ellipse(specX, specY, r*0.14, r*0.085, -0.6, 0, Math.PI*2);
+    const spec = ctx.createRadialGradient(specX, specY, 0, specX, specY, r*0.14);
+    spec.addColorStop(0, 'rgba(255,255,255,0.92)');
+    spec.addColorStop(0.55, 'rgba(255,255,255,0.28)');
     spec.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = spec;
     ctx.fill();
-    // tiny hard glint at the core of the highlight — the "clear, techy" pop
+    // tiny hard glint at the core — the actual point-light reflection
     ctx.beginPath();
-    ctx.ellipse(specX - r*0.02, specY - r*0.02, r*0.045, r*0.03, -0.6, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.ellipse(specX - r*0.015, specY - r*0.015, r*0.03, r*0.02, -0.6, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
     ctx.fill();
 
-    // secondary rim light — thin bright edge opposite the key light, classic two-light 3D sphere cue
-    ctx.lineWidth = r*0.05;
-    ctx.strokeStyle = `rgba(${CYAN},${0.4*flicker})`;
+    // secondary rim light — faint, thin edge opposite the key light, classic two-light 3D sphere cue,
+    // kept subtle so it reads as bounced light rather than a second neon tube
+    ctx.lineWidth = r*0.025;
+    ctx.strokeStyle = `rgba(${CYAN},${0.22*flicker})`;
     ctx.beginPath();
     ctx.ellipse(cx + r*0.02, cy + r*0.02, r*0.97, r*0.97, 0, 0.15, Math.PI*0.85);
     ctx.stroke();
 
-    // fresnel edge — brighter rim where the glass curves away, cyan on top, gold on bottom (light wrap).
-    // A hint of chromatic fringing (tiny sub-pixel color-channel offset) on the fresnel is the last cue
-    // that pushes it from "glowing cartoon sphere" toward "real refractive glass under a camera lens".
+    // fresnel edge — brighter rim where the glass curves away, cool on top, warm on bottom (light wrap).
+    // Thin, like real Fresnel reflectance at a glass boundary — not a thick glowing tube — with a hint
+    // of chromatic fringing (tiny sub-pixel color-channel offset) for a camera-lens-under-glass feel.
     ctx.save();
-    ctx.translate(-0.6, 0);
-    ctx.lineWidth = r*0.14;
-    ctx.globalAlpha = 0.5;
+    ctx.translate(-0.5, 0);
+    ctx.lineWidth = r*0.045;
+    ctx.globalAlpha = 0.45;
     ctx.strokeStyle = `rgba(${CYAN},0.5)`;
     ctx.stroke(path);
     ctx.restore();
     ctx.save();
-    ctx.translate(0.6, 0);
-    ctx.lineWidth = r*0.14;
-    ctx.globalAlpha = 0.5;
-    ctx.strokeStyle = `rgba(${GOLD},0.45)`;
+    ctx.translate(0.5, 0);
+    ctx.lineWidth = r*0.045;
+    ctx.globalAlpha = 0.45;
+    ctx.strokeStyle = `rgba(${GOLD},0.42)`;
     ctx.stroke(path);
     ctx.restore();
     ctx.globalAlpha = 1;
-    ctx.lineWidth = r*0.14;
+    ctx.lineWidth = r*0.045;
     const fres = ctx.createLinearGradient(cx, cy-r, cx, cy+r);
-    fres.addColorStop(0, `rgba(${CYAN},0.6)`);
-    fres.addColorStop(0.5, 'rgba(255,255,255,0.08)');
-    fres.addColorStop(1, `rgba(${GOLD},0.55)`);
+    fres.addColorStop(0, `rgba(${CYAN},0.55)`);
+    fres.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+    fres.addColorStop(1, `rgba(${GOLD},0.5)`);
     ctx.strokeStyle = fres;
     ctx.stroke(path);
     ctx.restore();
 
-    // two rotating neon rings — cyan and gold, different speeds/tilts for a flashier, layered orbit
+    // one faint orbiting ring — a thin halo rather than two glowing neon hoops; reads as a subtle
+    // detail catching light rather than a sci-fi logo prop
     ctx.globalCompositeOperation = 'lighter';
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(reduced ? 0.35 : t*0.007);
     ctx.beginPath();
-    ctx.ellipse(0, 0, r*1.62, r*0.55, 0, 0, Math.PI*2);
-    ctx.strokeStyle = `rgba(${CYAN},${0.6*flicker})`;
-    ctx.lineWidth = 1.8;
-    ctx.shadowColor = `rgba(${CYAN},0.9)`;
-    ctx.shadowBlur = 12;
+    ctx.ellipse(0, 0, r*1.5, r*0.5, 0, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(${CYAN},${0.22*flicker})`;
+    ctx.lineWidth = 1;
+    ctx.shadowColor = `rgba(${CYAN},0.35)`;
+    ctx.shadowBlur = 4;
     ctx.stroke();
     ctx.restore();
 
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(reduced ? -0.5 : -t*0.0045 + 1.1);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, r*1.42, r*0.42, 0, 0, Math.PI*2);
-    ctx.strokeStyle = `rgba(${GOLD},${0.5*flicker})`;
-    ctx.lineWidth = 1.4;
-    ctx.shadowColor = `rgba(${GOLD},0.85)`;
-    ctx.shadowBlur = 10;
-    ctx.stroke();
-    ctx.restore();
     ctx.globalCompositeOperation = 'source-over';
 
     t++;
