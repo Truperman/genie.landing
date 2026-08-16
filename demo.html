@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try Genie live — interactive demo</title>
+<meta name="description" content="Message a mock version of Genie the way a customer would, and watch it work in real time — replies, tagging, booking holds, and follow-ups, live.">
+<style>
+  :root{
+    --bg: oklch(0.1 0.007 273);
+    --bg-2: oklch(0.075 0.007 273);
+    --surface: oklch(0.155 0.014 273);
+    --border: oklch(1 0 0 / 0.1);
+    --border-soft: oklch(1 0 0 / 0.07);
+    --ink: oklch(0.98 0.004 273);
+    --muted: oklch(0.7 0.014 273);
+    --faint: oklch(0.64 0.014 273);
+    --accent: #a3b4ff;
+    --accent-2: #7ee8fa;
+    --accent-ink: oklch(0.16 0.03 273);
+    --accent-glow: oklch(0.74 0.19 272 / 0.6);
+    --accent-dim: oklch(0.74 0.17 272 / 0.14);
+    --gold: #e8b64f;
+    --gold-light: #ffd982;
+    --gold-ink: oklch(0.18 0.04 70);
+    --gold-glow: oklch(0.8 0.15 80 / 0.65);
+    --good: #6fe7c0;
+    --z-sticky: 20;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0; min-height:100vh; color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: clip;
+  }
+  .aurora{ position: fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
+  .aurora::before, .aurora::after{ content:''; position:absolute; width:70vw; height:70vw; max-width:900px; max-height:900px;
+    border-radius:50%; filter: blur(90px); opacity:0.22; }
+  .aurora::before{ background: radial-gradient(circle, oklch(0.6 0.16 272) 0%, transparent 70%);
+    top:-18vw; left:-14vw; animation: auroraDrift1 34s ease-in-out infinite alternate; }
+  .aurora::after{ background: radial-gradient(circle, oklch(0.72 0.13 80) 0%, transparent 70%);
+    bottom:-20vw; right:-16vw; animation: auroraDrift2 40s ease-in-out infinite alternate; }
+  @keyframes auroraDrift1{ 0%{ transform: translate(0,0) scale(1); } 100%{ transform: translate(6vw, 8vw) scale(1.12); } }
+  @keyframes auroraDrift2{ 0%{ transform: translate(0,0) scale(1); } 100%{ transform: translate(-5vw, -7vw) scale(1.1); } }
+  @media (prefers-reduced-motion: reduce){ .aurora::before, .aurora::after{ animation:none; } }
+  body > *:not(.aurora):not(nav){ position:relative; z-index:1; }
+
+  .glass{ background: linear-gradient(160deg, oklch(1 0 0 / 0.06), oklch(1 0 0 / 0.02));
+    backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border:1px solid oklch(1 0 0 / 0.09);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), 0 24px 60px -30px oklch(0 0 0 / 0.7); }
+  h1,h2,h3{ font-family: 'Fraunces', Georgia, 'Times New Roman', serif; font-weight: 480; letter-spacing: -0.025em; text-wrap: balance; margin: 0; }
+  p{ text-wrap: pretty; }
+  a{ color: inherit; text-decoration: none; }
+  .wrap{ max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+  ::selection{ background: var(--accent-dim); color: var(--ink); }
+
+  /* ---------- nav ---------- */
+  nav{ position: sticky; top:0; z-index: var(--z-sticky); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background: oklch(0.07 0.006 273 / 0.68); border-bottom: 1px solid var(--border-soft); }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:72px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-size:18px; font-weight:560; letter-spacing:-0.01em; }
+  .brand-mark{ width:22px; height:22px; border-radius:50%; flex-shrink:0;
+    background: radial-gradient(circle at 32% 28%, #fff 0%, var(--accent) 42%, #5a6fd6 100%);
+    box-shadow: 0 0 14px 1px var(--accent-glow); }
+  .nav-links{ display:flex; align-items:center; gap:28px; font-size:13.5px; color: var(--muted); }
+  .nav-links a{ transition: color .25s var(--ease); }
+  .nav-links a:hover{ color: var(--ink); }
+  .nav-right{ display:flex; align-items:center; gap:22px; }
+  .nav-cta{ font-size:13px; font-weight:600; padding:9px 19px; border-radius:999px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: var(--gold-ink); border:none; cursor:pointer;
+    box-shadow: 0 0 0 1px oklch(0.8 0.15 80 / 0.3), 0 4px 16px -6px var(--gold-glow);
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+  .nav-cta:hover{ transform: translateY(-1px); box-shadow: 0 8px 22px -8px var(--gold-glow); }
+  @media (max-width: 760px){ .nav-links{ display:none; } }
+  .btn-primary{ font-size:14.5px; font-weight:600; padding:13px 24px; border-radius:12px; border:none; cursor:pointer; display:inline-block;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, #d69b2e); color: var(--gold-ink);
+    box-shadow: 0 0 0 1px oklch(0.8 0.15 80 / 0.35), 0 10px 28px -12px var(--gold-glow);
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+  .btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 0 0 1px oklch(0.8 0.15 80 / 0.45), 0 18px 40px -12px var(--gold-glow); }
+  .btn-ghost{ font-size:14px; font-weight:560; padding:12px 20px; border-radius:12px; cursor:pointer; display:inline-block;
+    background: transparent; color: var(--ink); border:1px solid var(--border);
+    transition: border-color .3s var(--ease), background .3s var(--ease); }
+  .btn-ghost:hover{ border-color: oklch(1 0 0 / 0.28); background: oklch(1 0 0 / 0.03); }
+
+  /* ---------- demo header ---------- */
+  .demo-head{ padding: 60px 0 36px; text-align:center; }
+  .demo-kicker{ font-size:13px; color: var(--faint); margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:9px; }
+  .demo-kicker .dot{ width:6px; height:6px; border-radius:50%; background: var(--good); box-shadow: 0 0 8px 1px oklch(0.8 0.16 165 / 0.55); animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
+  @media (prefers-reduced-motion: reduce){ .demo-kicker .dot{ animation:none; } }
+  .demo-head h1{ font-size: clamp(2rem, 4.6vw, 3.2rem); max-width: 20ch; margin: 0 auto; }
+  .demo-head p{ margin: 18px auto 0; max-width: 56ch; color: var(--muted); font-size:15.5px; line-height:1.65; }
+  .demo-note{ margin-top:18px; display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color: var(--faint);
+    border:1px solid var(--border-soft); border-radius:999px; padding:7px 15px; }
+
+  /* ---------- demo layout ---------- */
+  .demo-wrap{ padding: 10px 0 100px; }
+  .demo-grid{ display:grid; grid-template-columns: 1.4fr 1fr; gap:22px; align-items:start; }
+  @media (max-width: 900px){ .demo-grid{ grid-template-columns: 1fr; } }
+
+  .chat-panel{ border-radius:20px; display:flex; flex-direction:column; height: min(640px, 74vh); overflow:hidden; }
+  .chat-panel-head{ display:flex; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid var(--border-soft); flex-shrink:0; }
+  .chat-avatar{ width:34px; height:34px; border-radius:50%; flex-shrink:0; position:relative;
+    background: radial-gradient(circle at 32% 28%, #fff 0%, var(--accent) 42%, #5a6fd6 100%);
+    box-shadow: 0 0 14px 1px var(--accent-glow); }
+  .chat-avatar::after{ content:''; position:absolute; right:-1px; bottom:-1px; width:9px; height:9px; border-radius:50%;
+    background: var(--good); border:2px solid var(--bg); }
+  .chat-panel-head .who{ font-size:14.5px; font-weight:600; }
+  .chat-panel-head .sub{ font-size:12px; color: var(--faint); margin-top:2px; }
+  .chat-scroll{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth; }
+  .chat-scroll::-webkit-scrollbar{ width:8px; }
+  .chat-scroll::-webkit-scrollbar-thumb{ background: oklch(1 0 0 / 0.12); border-radius:999px; }
+
+  .bubble{ max-width:80%; padding:11px 15px; border-radius:14px; font-size:14px; line-height:1.55; opacity:0; transform: translateY(6px); animation: bubbleIn .4s var(--ease) forwards; }
+  @keyframes bubbleIn{ to{ opacity:1; transform:none; } }
+  .bubble.them{ align-self:flex-start; background: oklch(0.18 0.014 273); border:1px solid var(--border-soft); border-bottom-left-radius:4px; }
+  .bubble.me{ align-self:flex-end; background: var(--accent-dim); border:1px solid oklch(0.68 0.13 272 / 0.3); border-bottom-right-radius:4px; }
+  .bubble.system{ align-self:center; font-size:12px; color: var(--faint); background:none; border:none; padding:2px 6px; }
+
+  .typing-row{ align-self:flex-start; display:flex; align-items:center; gap:5px; padding:12px 15px; border-radius:14px; border-bottom-left-radius:4px;
+    background: oklch(0.18 0.014 273); border:1px solid var(--border-soft); }
+  .typing-row span{ width:6px; height:6px; border-radius:50%; background: var(--faint); animation: typingBounce 1.1s ease-in-out infinite; }
+  .typing-row span:nth-child(2){ animation-delay: .15s; }
+  .typing-row span:nth-child(3){ animation-delay: .3s; }
+  @keyframes typingBounce{ 0%,60%,100%{ transform: translateY(0); opacity:.5; } 30%{ transform: translateY(-4px); opacity:1; } }
+  @media (prefers-reduced-motion: reduce){ .typing-row span{ animation:none; } .bubble{ animation:none; opacity:1; transform:none; } }
+
+  .chat-input-row{ display:flex; gap:10px; padding:16px; border-top:1px solid var(--border-soft); flex-shrink:0; }
+  .chat-input-row input{ flex:1; background: oklch(1 0 0 / 0.04); border:1px solid var(--border); border-radius:11px;
+    padding:12px 14px; color: var(--ink); font-size:14px; font-family:inherit; outline:none;
+    transition: border-color .25s var(--ease), background .25s var(--ease); }
+  .chat-input-row input:focus{ border-color: var(--accent); background: oklch(1 0 0 / 0.06); }
+  .chat-send{ width:44px; height:44px; border-radius:11px; border:none; cursor:pointer; flex-shrink:0;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, #d69b2e); color: var(--gold-ink);
+    display:flex; align-items:center; justify-content:center;
+    transition: transform .3s var(--ease); }
+  .chat-send:hover{ transform: translateY(-1px); }
+  .chat-send:active{ transform: translateY(0); }
+
+  .suggest-row{ padding: 0 16px 16px; display:flex; flex-wrap:wrap; gap:8px; flex-shrink:0; }
+  .suggest-chip{ font-size:12.5px; color: var(--muted); border:1px solid var(--border); border-radius:999px;
+    padding:7px 13px; cursor:pointer; background: transparent; transition: border-color .25s var(--ease), color .25s var(--ease), background .25s var(--ease); }
+  .suggest-chip:hover{ border-color: oklch(1 0 0 / 0.3); color: var(--ink); background: oklch(1 0 0 / 0.03); }
+  .suggest-chip:disabled{ opacity:0.4; cursor:default; }
+
+  /* ---------- activity feed ---------- */
+  .activity-panel{ border-radius:20px; padding:22px; height: min(640px, 74vh); display:flex; flex-direction:column; }
+  .activity-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color: var(--ink); flex-shrink:0; }
+  .activity-head .dot{ width:6px; height:6px; border-radius:50%; background: var(--accent-2); box-shadow: 0 0 7px 1px oklch(0.78 0.15 210 / 0.6); }
+  .activity-sub{ margin-top:6px; font-size:12.5px; color: var(--faint); line-height:1.5; flex-shrink:0; }
+  .activity-list{ margin-top:18px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; }
+  .activity-empty{ margin-top: 18px; font-size:13px; color: var(--faint); line-height:1.6; padding:16px; border:1px dashed var(--border); border-radius:12px; }
+  .activity-item{ display:flex; gap:10px; padding:12px 13px; border-radius:11px; background: oklch(1 0 0 / 0.03); border:1px solid var(--border-soft);
+    opacity:0; transform: translateX(8px); animation: actIn .4s var(--ease) forwards; }
+  @keyframes actIn{ to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .activity-item{ animation:none; opacity:1; transform:none; } }
+  .activity-item .ic{ flex-shrink:0; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:1px;
+    background: var(--accent-dim); border:1px solid oklch(0.68 0.13 272 / 0.35); }
+  .activity-item .ic svg{ width:11px; height:11px; }
+  .activity-item .body{ font-size:12.5px; line-height:1.5; }
+  .activity-item .label{ font-weight:600; color: var(--ink); }
+  .activity-item .detail{ color: var(--muted); margin-top:2px; }
+  .activity-item .time{ color: var(--faint); font-size:11px; margin-top:4px; }
+
+  /* ---------- bottom cta ---------- */
+  .demo-cta{ padding: 20px 0 100px; text-align:center; }
+  .demo-cta h2{ font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width:18ch; margin:0 auto; }
+  .demo-cta p{ margin-top:14px; color: var(--muted); font-size:15px; }
+  .demo-cta .ctas{ margin-top:28px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+
+  footer{ border-top:1px solid var(--border-soft); padding: 34px 0; text-align:center; font-size:12.5px; color: var(--faint); }
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark"></span>Genie</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#what">What it does</a>
+      <a href="index.html#specialists">Specialists</a>
+      <a href="index.html#signup-section">Pricing</a>
+    </div>
+    <div class="nav-right">
+      <button class="nav-cta" onclick="location.href='index.html#signup-section'">Start free</button>
+    </div>
+  </div>
+</nav>
+
+<header class="demo-head">
+  <div class="wrap">
+    <div class="demo-kicker"><span class="dot"></span>Live interactive demo &middot; no signup required</div>
+    <h1>Try Genie yourself — right now.</h1>
+    <p>Type a message the way a customer would. This Genie is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.</p>
+    <div class="demo-note">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor"/><path d="M6.5 4.2v3M6.5 8.7h.01" stroke="currentColor" stroke-linecap="round"/></svg>
+      This is a scripted demo of typical replies — your real Genie learns your actual business instead.
+    </div>
+  </div>
+</header>
+
+<section class="demo-wrap">
+  <div class="wrap">
+    <div class="demo-grid">
+
+      <div class="chat-panel glass">
+        <div class="chat-panel-head">
+          <div class="chat-avatar"></div>
+          <div>
+            <div class="who">Riverside Home Services</div>
+            <div class="sub">Genie is online &middot; replies instantly</div>
+          </div>
+        </div>
+        <div class="chat-scroll" id="chat-scroll"></div>
+        <div class="suggest-row" id="suggest-row">
+          <button class="suggest-chip" data-msg="Do you do same-week estimates?">Same-week estimates?</button>
+          <button class="suggest-chip" data-msg="How much for a water heater replacement?">Water heater pricing?</button>
+          <button class="suggest-chip" data-msg="Can someone come out today, it's urgent">It's urgent, today?</button>
+          <button class="suggest-chip" data-msg="Do you service the 80203 zip code?">Do you cover my area?</button>
+          <button class="suggest-chip" data-msg="What are your hours?">Your hours?</button>
+        </div>
+        <form class="chat-input-row" id="chat-form">
+          <input id="chat-input" type="text" placeholder="Type a message, like a customer would…" autocomplete="off">
+          <button class="chat-send" type="submit" aria-label="Send">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M2.5 10L17.5 2.5L12.5 17.5L9.5 11.5L2.5 10Z" stroke="#141625" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="activity-panel glass">
+        <div class="activity-head"><span class="dot"></span>Genie's activity — live</div>
+        <div class="activity-sub">What Genie is doing behind the scenes as the conversation happens — the part your customers never see.</div>
+        <div class="activity-list" id="activity-list">
+          <div class="activity-empty" id="activity-empty">Send a message on the left to see Genie start working.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="demo-cta">
+  <div class="wrap">
+    <h2>This could be answering your leads tonight.</h2>
+    <p>Free to start. No cost until day 7, and only for what it actually uses.</p>
+    <div class="ctas">
+      <a class="btn-primary" href="index.html#signup-section">Start your Genie — free</a>
+      <a class="btn-ghost" href="index.html">Back to overview</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">&copy; <span id="year"></span> Genie. This page is a scripted demo and not connected to any real business or account.</div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------------- mock genie response engine ---------------- */
+const chatScroll = document.getElementById('chat-scroll');
+const activityList = document.getElementById('activity-list');
+const activityEmpty = document.getElementById('activity-empty');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const suggestRow = document.getElementById('suggest-row');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let turn = 0;
+let busy = false;
+
+function addBubble(text, who){
+  const el = document.createElement('div');
+  el.className = 'bubble ' + who;
+  el.textContent = text;
+  chatScroll.appendChild(el);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+  return el;
+}
+
+function addSystem(text){
+  const el = document.createElement('div');
+  el.className = 'bubble system';
+  el.textContent = text;
+  chatScroll.appendChild(el);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+}
+
+const ICONS = {
+  reply: '<path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  tag: '<path d="M2 6l4-4h4v4l-4 4-4-4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>',
+  calendar: '<rect x="1.5" y="2.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 5h9M4 1.5v2M8 1.5v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
+  bell: '<path d="M6 1.5c1.7 0 3 1.4 3 3.2v1.6l1 1.7H2l1-1.7V4.7c0-1.8 1.3-3.2 3-3.2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M4.5 9.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.2"/>',
+  flag: '<path d="M2 1.5v9M2 1.5h6l-1.2 2L8 5.5H2" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>',
+};
+
+function addActivity(icon, label, detail){
+  if (activityEmpty) activityEmpty.remove();
+  const el = document.createElement('div');
+  el.className = 'activity-item';
+  const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  el.innerHTML = `<span class="ic"><svg viewBox="0 0 12 12" fill="none">${ICONS[icon] || ICONS.reply}</svg></span>
+    <div class="body"><div class="label">${label}</div><div class="detail">${detail}</div><div class="time">${time}</div></div>`;
+  activityList.appendChild(el);
+  activityList.scrollTop = activityList.scrollHeight;
+}
+
+function showTyping(){
+  const el = document.createElement('div');
+  el.className = 'typing-row';
+  el.id = 'typing-indicator';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  chatScroll.appendChild(el);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+}
+function hideTyping(){
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+/* Intent matching: ordered rules, first match wins. Each intent returns a Genie
+   reply plus one or two "activity" log entries so the demo shows both sides —
+   what the customer sees, and what Genie is doing behind the scenes. */
+function matchIntent(msg){
+  const m = msg.toLowerCase();
+
+  if (/urgent|emergency|asap|right now|today|flood|leak|no heat|no ac|burst/.test(m)){
+    return {
+      reply: "That sounds urgent — I can get someone out today. Can you give me the address and a quick description of what's happening? I'll flag this as priority and text you a confirmed window within a few minutes.",
+      acts: [
+        ['flag', 'Escalated as urgent', 'Flagged for same-day dispatch, notified on-call tech'],
+        ['tag', 'Tagged: high-intent lead', 'Priority queue — response time under 2 minutes'],
+      ],
+    };
+  }
+  if (/price|cost|how much|estimate|quote/.test(m)){
+    return {
+      reply: "Happy to get you a ballpark — pricing depends a bit on your setup, but most jobs like that run $350–$650 installed. Want me to get you an exact quote? I just need your address and a couple photos if you have them.",
+      acts: [
+        ['tag', 'Tagged: pricing inquiry', 'Logged as a warm lead — pricing requested'],
+        ['reply', 'Drafted quote request', 'Queued a follow-up if no photos are sent within 24 hrs'],
+      ],
+    };
+  }
+  if (/book|schedule|appointment|available|thursday|friday|monday|tuesday|wednesday|saturday|sunday|tomorrow/.test(m)){
+    return {
+      reply: "I can hold a spot for that. I've got openings Thursday 10–12 or Friday 1–3 this week — which works better? I'll lock it in and text you a reminder the day before.",
+      acts: [
+        ['calendar', 'Booking hold created', 'Thursday 10–12 reserved pending confirmation'],
+        ['bell', 'Reminder queued', 'Text reminder scheduled for 24 hrs before the appointment'],
+      ],
+    };
+  }
+  if (/zip|area|location|serve|city|near|address/.test(m)){
+    return {
+      reply: "Yep, we cover that area — usually same-week for that zip. Want me to check exact availability for your address?",
+      acts: [
+        ['tag', 'Tagged: service-area check', 'Confirmed coverage, offered scheduling next'],
+      ],
+    };
+  }
+  if (/hour|open|close|time.*work|when.*open/.test(m)){
+    return {
+      reply: "We're on-call 7am–8pm every day, and for real emergencies we can usually get someone out after hours too. Want me to check tonight's availability?",
+      acts: [
+        ['reply', 'Answered hours inquiry', 'No escalation needed — informational reply'],
+      ],
+    };
+  }
+  if (/review|yelp|google|rating/.test(m)){
+    return {
+      reply: "Thank you, that means a lot! If you've got a minute, a Google review really helps us out — I can text you the link. And if anything wasn't perfect, tell me now and I'll make it right personally.",
+      acts: [
+        ['reply', 'Drafted review-request follow-up', 'Queued to send after the job is marked complete'],
+      ],
+    };
+  }
+  if (/are you (a bot|real|human|ai)|robot|chatbot/.test(m)){
+    return {
+      reply: "I'm Genie — an AI that handles the day-to-day for this business: replies, booking, follow-ups. I'm not a person, but I've got real access to the calendar and pricing, so I can actually get things done, not just chat.",
+      acts: [
+        ['tag', 'Noted: asked about AI', 'No action needed — kept the conversation moving'],
+      ],
+    };
+  }
+  if (/what can you do|how does this work|capabilities|features/.test(m)){
+    return {
+      reply: "I answer every message instantly, qualify what's needed, book or hold appointments, send quotes, follow up on quiet leads, and even work on marketing when things are slow — all without anyone here lifting a finger.",
+      acts: [
+        ['reply', 'Shared capabilities overview', 'Standard response — no lead action required'],
+      ],
+    };
+  }
+  if (/^(hi|hey|hello|yo|sup)\b/.test(m)){
+    return {
+      reply: "Hey there! Thanks for reaching out to Riverside Home Services — what can I help with? Repair, installation, or just a quote?",
+      acts: [
+        ['tag', 'New conversation started', 'Logged as a new inbound lead'],
+      ],
+    };
+  }
+  if (/thank|thanks|appreciate/.test(m)){
+    return {
+      reply: "Anytime! I'll get everything set up on my end — you'll get a text confirmation shortly.",
+      acts: [
+        ['reply', 'Wrapped up conversation', 'No further action pending'],
+      ],
+    };
+  }
+  if (/bye|goodbye|later/.test(m)){
+    return {
+      reply: "Talk soon! I'll keep an eye on things from here.",
+      acts: [],
+    };
+  }
+
+  // fallback — still qualifies, doesn't dead-end
+  return {
+    reply: "Got it — tell me a bit more about what you need help with (repair, install, or just pricing?) and I'll get you sorted right away.",
+    acts: [
+      ['tag', 'Logged inbound message', 'Awaiting more detail to qualify the lead'],
+    ],
+  };
+}
+
+async function handleUserMessage(text){
+  if (busy || !text.trim()) return;
+  busy = true;
+  suggestRow.querySelectorAll('.suggest-chip').forEach(c => c.disabled = true);
+
+  addBubble(text.trim(), 'me');
+  turn++;
+  if (turn === 1){
+    addActivity('tag', 'New lead captured', 'Riverside Home Services — inbound web chat');
+  }
+
+  const intent = matchIntent(text);
+  const delay = reduced ? 300 : Math.min(2200, 550 + text.length * 22);
+  showTyping();
+  await new Promise(r => setTimeout(r, delay));
+  hideTyping();
+  addBubble(intent.reply, 'them');
+  for (const [icon, label, detail] of intent.acts){
+    await new Promise(r => setTimeout(r, reduced ? 60 : 260));
+    addActivity(icon, label, detail);
+  }
+
+  busy = false;
+  suggestRow.querySelectorAll('.suggest-chip').forEach(c => c.disabled = false);
+  chatInput.focus();
+}
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = chatInput.value;
+  if (!text.trim()) return;
+  chatInput.value = '';
+  handleUserMessage(text);
+});
+
+suggestRow.addEventListener('click', (e) => {
+  const btn = e.target.closest('.suggest-chip');
+  if (!btn || btn.disabled) return;
+  handleUserMessage(btn.dataset.msg);
+});
+
+/* opening message, as if the customer already said hi */
+(async function open(){
+  await new Promise(r => setTimeout(r, reduced ? 100 : 500));
+  showTyping();
+  await new Promise(r => setTimeout(r, reduced ? 200 : 900));
+  hideTyping();
+  addBubble("Hi! Thanks for stopping by Riverside Home Services. I'm Genie — ask me anything a real customer might, like pricing, booking, or hours, and watch how I handle it.", 'them');
+})();
+</script>
+</body>
+</html>
