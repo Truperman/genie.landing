@@ -101,8 +101,9 @@
 
   /* ---------- demo layout ---------- */
   .demo-wrap{ padding: 10px 0 100px; }
-  .demo-grid{ display:grid; grid-template-columns: 1.4fr 1fr; gap:22px; align-items:start; }
-  @media (max-width: 900px){ .demo-grid{ grid-template-columns: 1fr; } }
+  .demo-grid{ display:grid; grid-template-columns: 1.15fr 1fr 0.95fr; gap:20px; align-items:start; }
+  @media (max-width: 1180px){ .demo-grid{ grid-template-columns: 1fr 1fr; } .visual-panel{ grid-column: 1 / -1; } }
+  @media (max-width: 900px){ .demo-grid{ grid-template-columns: 1fr; } .visual-panel{ grid-column: auto; } }
 
   .chat-panel{ border-radius:20px; display:flex; flex-direction:column; height: min(640px, 74vh); overflow:hidden; }
   .chat-panel-head{ display:flex; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid var(--border-soft); flex-shrink:0; }
@@ -143,6 +144,27 @@
   .chat-send:hover{ transform: translateY(-1px); }
   .chat-send:active{ transform: translateY(0); }
 
+  .mic-btn{ width:44px; height:44px; border-radius:11px; border:1px solid var(--border); cursor:pointer; flex-shrink:0;
+    background: oklch(1 0 0 / 0.04); color: var(--muted); display:flex; align-items:center; justify-content:center;
+    transition: border-color .25s var(--ease), background .25s var(--ease), color .25s var(--ease); position:relative; }
+  .mic-btn:hover{ border-color: oklch(1 0 0 / 0.28); color: var(--ink); }
+  .mic-btn.listening{ color:#ff6b6b; border-color: oklch(0.62 0.2 25 / 0.55); background: oklch(0.62 0.2 25 / 0.12); }
+  .mic-btn.listening::after{ content:''; position:absolute; inset:-4px; border-radius:14px; border:1px solid oklch(0.62 0.2 25 / 0.5);
+    animation: micPulse 1.4s ease-out infinite; }
+  @keyframes micPulse{ 0%{ transform:scale(0.9); opacity:0.8; } 100%{ transform:scale(1.35); opacity:0; } }
+  .mic-btn[disabled]{ opacity:0.32; cursor:not-allowed; }
+  @media (prefers-reduced-motion: reduce){ .mic-btn.listening::after{ animation:none; } }
+
+  .voice-toggle{ display:flex; align-items:center; gap:6px; font-size:11.5px; color: var(--faint); border:1px solid var(--border-soft);
+    border-radius:999px; padding:5px 11px 5px 9px; cursor:pointer; background:transparent; margin-left:auto;
+    transition: color .25s var(--ease), border-color .25s var(--ease); flex-shrink:0; }
+  .voice-toggle:hover{ color: var(--ink); border-color: oklch(1 0 0 / 0.25); }
+  .voice-toggle.on{ color: var(--accent-2); border-color: oklch(0.78 0.15 210 / 0.4); background: oklch(0.78 0.15 210 / 0.08); }
+  .voice-toggle .vdot{ width:6px; height:6px; border-radius:50%; background: var(--faint); flex-shrink:0; }
+  .voice-toggle.on .vdot{ background: var(--accent-2); box-shadow: 0 0 6px 1px oklch(0.78 0.15 210 / 0.6); }
+  .voice-status{ padding: 0 16px; font-size:11.5px; color: var(--accent-2); height:0; overflow:hidden; transition: height .25s var(--ease); flex-shrink:0; }
+  .voice-status.show{ height:22px; }
+
   .suggest-row{ padding: 0 16px 16px; display:flex; flex-wrap:wrap; gap:8px; flex-shrink:0; }
   .suggest-chip{ font-size:12.5px; color: var(--muted); border:1px solid var(--border); border-radius:999px;
     padding:7px 13px; cursor:pointer; background: transparent; transition: border-color .25s var(--ease), color .25s var(--ease), background .25s var(--ease); }
@@ -167,6 +189,53 @@
   .activity-item .label{ font-weight:600; color: var(--ink); }
   .activity-item .detail{ color: var(--muted); margin-top:2px; }
   .activity-item .time{ color: var(--faint); font-size:11px; margin-top:4px; }
+
+  /* ---------- visual "watch it work" simulation panel ---------- */
+  .visual-panel{ border-radius:20px; overflow:hidden; height: min(640px, 74vh); display:flex; flex-direction:column; }
+  .visual-panel-note{ padding:14px 16px 0; font-size:11.5px; color: var(--faint); line-height:1.5; flex-shrink:0; }
+  .visual-panel-note b{ color: var(--muted); font-weight:600; }
+  .browser-mock{ margin:12px; border-radius:13px; overflow:hidden; border:1px solid var(--border-soft);
+    background: oklch(0.13 0.01 273); flex:1; display:flex; flex-direction:column; min-height:0; }
+  .browser-chrome{ display:flex; align-items:center; gap:10px; padding:10px 12px; background: oklch(0.17 0.012 273); border-bottom:1px solid var(--border-soft); flex-shrink:0; }
+  .browser-dots{ display:flex; gap:5px; flex-shrink:0; }
+  .browser-dots span{ width:8px; height:8px; border-radius:50%; background: oklch(1 0 0 / 0.14); }
+  .browser-url{ flex:1; font-size:11px; color: var(--faint); background: oklch(1 0 0 / 0.04); border-radius:7px; padding:5px 10px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition: color .3s var(--ease); }
+  .browser-url.active{ color: var(--accent-2); }
+  .browser-screen{ position:relative; flex:1; min-height:0; overflow:hidden;
+    background: radial-gradient(circle at 30% 0%, oklch(0.2 0.03 272 / 0.5), transparent 60%), oklch(0.1 0.008 273); }
+  .browser-screen-grid{ position:absolute; inset:0; opacity:0.5;
+    background-image: linear-gradient(oklch(1 0 0 / 0.035) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.035) 1px, transparent 1px);
+    background-size: 26px 26px; }
+  .fake-sidebar{ position:absolute; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--border-soft);
+    background: oklch(1 0 0 / 0.02); display:flex; flex-direction:column; align-items:center; gap:14px; padding:14px 0; }
+  .fake-sidebar .fs-ic{ width:22px; height:22px; border-radius:7px; background: oklch(1 0 0 / 0.05); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center; color: var(--faint); transition: background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease); }
+  .fake-sidebar .fs-ic.hot{ background: var(--accent-dim); color: var(--accent-2); border-color: oklch(0.68 0.13 272 / 0.4); }
+  .fake-sidebar .fs-ic svg{ width:11px; height:11px; }
+  .visual-cards{ position:absolute; left:56px; right:14px; top:14px; bottom:14px; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
+  .vcard{ background: oklch(1 0 0 / 0.045); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px;
+    font-size:11.5px; line-height:1.5; opacity:0; transform: translateY(6px) scale(0.98); animation: vcardIn .45s var(--ease) forwards; flex-shrink:0; }
+  @keyframes vcardIn{ to{ opacity:1; transform:none; } }
+  .vcard .vc-top{ display:flex; align-items:center; gap:7px; font-weight:600; color: var(--ink); }
+  .vcard .vc-top .vc-ic{ width:16px; height:16px; border-radius:5px; background: var(--accent-dim); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .vcard .vc-top .vc-ic svg{ width:9px; height:9px; color: var(--accent-2); }
+  .vcard .vc-detail{ color: var(--muted); margin-top:3px; margin-left:23px; }
+  .vcard .vc-check{ margin-left:auto; width:15px; height:15px; border-radius:50%; background: var(--good); opacity:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: opacity .3s var(--ease); }
+  .vcard .vc-check.show{ opacity:1; }
+  .vcard .vc-check svg{ width:8px; height:8px; }
+  .fake-cursor{ position:absolute; width:14px; height:14px; left:50%; top:50%; pointer-events:none; z-index:5;
+    transition: left .7s var(--ease), top .7s var(--ease); opacity:0; }
+  .fake-cursor.show{ opacity:1; }
+  .fake-cursor svg{ width:14px; height:14px; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6)); }
+  .fake-cursor::after{ content:''; position:absolute; left:2px; top:2px; width:14px; height:14px; border-radius:50%;
+    border:1.5px solid var(--accent-2); opacity:0; }
+  .fake-cursor.click::after{ animation: cursorClick .5s var(--ease); }
+  @keyframes cursorClick{ 0%{ transform:scale(0.4); opacity:0.9; } 100%{ transform:scale(2.2); opacity:0; } }
+  .browser-screen-idle{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+    text-align:center; padding:20px; color: var(--faint); font-size:12px; line-height:1.6; }
+  .browser-screen-idle svg{ width:26px; height:26px; opacity:0.5; }
+  @media (prefers-reduced-motion: reduce){ .vcard{ animation:none; opacity:1; transform:none; } .fake-cursor{ transition:none; } .fake-cursor.click::after{ animation:none; } }
 
   /* ---------- bottom cta ---------- */
   .demo-cta{ padding: 20px 0 100px; text-align:center; }
@@ -218,8 +287,12 @@
             <div class="who">Riverside Home Services</div>
             <div class="sub">Super Agent is online &middot; replies instantly</div>
           </div>
+          <button class="voice-toggle" id="voice-toggle" type="button" title="Have Super Agent speak its replies out loud">
+            <span class="vdot"></span><span id="voice-toggle-label">Voice replies: off</span>
+          </button>
         </div>
         <div class="chat-scroll" id="chat-scroll"></div>
+        <div class="voice-status" id="voice-status">Listening — speak your message…</div>
         <div class="suggest-row" id="suggest-row">
           <button class="suggest-chip" data-msg="Do you do same-week estimates?">Same-week estimates?</button>
           <button class="suggest-chip" data-msg="How much for a water heater replacement?">Water heater pricing?</button>
@@ -228,11 +301,41 @@
           <button class="suggest-chip" data-msg="What are your hours?">Your hours?</button>
         </div>
         <form class="chat-input-row" id="chat-form">
-          <input id="chat-input" type="text" placeholder="Type a message, like a customer would…" autocomplete="off">
+          <button class="mic-btn" id="mic-btn" type="button" aria-label="Speak your message" title="Click to talk">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a2.2 2.2 0 0 0-2.2 2.2v4.2a2.2 2.2 0 0 0 4.4 0V3.7A2.2 2.2 0 0 0 8 1.5Z" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <input id="chat-input" type="text" placeholder="Type or click the mic to talk…" autocomplete="off">
           <button class="chat-send" type="submit" aria-label="Send">
             <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M2.5 10L17.5 2.5L12.5 17.5L9.5 11.5L2.5 10Z" stroke="#141625" stroke-width="1.6" stroke-linejoin="round"/></svg>
           </button>
         </form>
+      </div>
+
+      <div class="visual-panel glass">
+        <div class="visual-panel-note"><b>Simulated visualization</b> — shows the kind of screens and actions Super Agent touches in the background. Not a live screen recording.</div>
+        <div class="browser-mock">
+          <div class="browser-chrome">
+            <div class="browser-dots"><span></span><span></span><span></span></div>
+            <div class="browser-url" id="browser-url">app.superagent.ai/inbox</div>
+          </div>
+          <div class="browser-screen" id="browser-screen">
+            <div class="browser-screen-grid"></div>
+            <div class="fake-sidebar" id="fake-sidebar">
+              <div class="fs-ic" data-zone="inbox"><svg viewBox="0 0 12 12" fill="none"><path d="M1 3l5 3.5L11 3M1 3v6h10V3" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
+              <div class="fs-ic" data-zone="leads"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3-3h4v4l-3 3-4-4z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg></div>
+              <div class="fs-ic" data-zone="calendar"><svg viewBox="0 0 12 12" fill="none"><rect x="1.5" y="2" width="9" height="8.5" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 4.7h9" stroke="currentColor" stroke-width="1.1"/></svg></div>
+              <div class="fs-ic" data-zone="dispatch"><svg viewBox="0 0 12 12" fill="none"><path d="M2 1.5v9M2 1.5h6l-1.2 2L8 5.5H2" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg></div>
+            </div>
+            <div class="fake-cursor" id="fake-cursor">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M1 1l5.6 13.2 1.8-5.4 5.4-1.8L1 1z" fill="white" stroke="#141625" stroke-width="1"/></svg>
+            </div>
+            <div class="visual-cards" id="visual-cards"></div>
+            <div class="browser-screen-idle" id="browser-screen-idle">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v6l4 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4"/></svg>
+              Send a message to watch Super Agent open the right screens and take action.
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="activity-panel glass">
@@ -273,6 +376,136 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const suggestRow = document.getElementById('suggest-row');
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- visual "watch it work" simulation ---------------- */
+const browserUrl = document.getElementById('browser-url');
+const browserScreenIdle = document.getElementById('browser-screen-idle');
+const visualCards = document.getElementById('visual-cards');
+const fakeCursor = document.getElementById('fake-cursor');
+const fakeSidebar = document.getElementById('fake-sidebar');
+
+const ZONE_BY_ICON = { reply:'inbox', tag:'leads', calendar:'calendar', bell:'calendar', flag:'dispatch' };
+const URL_BY_ZONE = {
+  inbox: 'app.superagent.ai/inbox',
+  leads: 'app.superagent.ai/leads/482',
+  calendar: 'app.superagent.ai/calendar',
+  dispatch: 'app.superagent.ai/dispatch-board',
+};
+const CURSOR_TARGET_BY_ZONE = { inbox: [0.62,0.24], leads: [0.68,0.42], calendar: [0.6,0.6], dispatch: [0.7,0.76] };
+
+async function addVisualAction(icon, label, detail){
+  if (browserScreenIdle) browserScreenIdle.remove();
+  const zone = ZONE_BY_ICON[icon] || 'inbox';
+
+  // update the fake address bar to look like it's navigating to the relevant screen
+  browserUrl.textContent = URL_BY_ZONE[zone];
+  browserUrl.classList.add('active');
+  setTimeout(() => browserUrl.classList.remove('active'), 900);
+
+  // highlight the matching sidebar icon
+  fakeSidebar.querySelectorAll('.fs-ic').forEach(el => el.classList.toggle('hot', el.dataset.zone === zone));
+
+  // move the fake cursor toward that area of the screen and give a little "click" pulse
+  const [tx, ty] = CURSOR_TARGET_BY_ZONE[zone];
+  fakeCursor.style.left = (tx * 100) + '%';
+  fakeCursor.style.top = (ty * 100) + '%';
+  fakeCursor.classList.add('show');
+  if (!reduced){
+    await new Promise(r => setTimeout(r, 650));
+    fakeCursor.classList.remove('click'); void fakeCursor.offsetWidth; fakeCursor.classList.add('click');
+  }
+
+  // drop in an action card, then "check it off" a beat later — reads as work actually completing
+  const card = document.createElement('div');
+  card.className = 'vcard';
+  card.innerHTML = `<div class="vc-top"><span class="vc-ic"><svg viewBox="0 0 12 12" fill="none">${ICONS[icon] || ICONS.reply}</svg></span>${label}<span class="vc-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5.2L4 7.2L8 2.8" stroke="#0b1710" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><div class="vc-detail">${detail}</div>`;
+  visualCards.appendChild(card);
+  while (visualCards.children.length > 4) visualCards.removeChild(visualCards.firstChild);
+  await new Promise(r => setTimeout(r, reduced ? 80 : 500));
+  card.querySelector('.vc-check').classList.add('show');
+}
+
+function logAction(icon, label, detail){
+  addActivity(icon, label, detail);
+  addVisualAction(icon, label, detail);
+}
+
+/* ---------------- voice input (speech-to-text) + voice output (text-to-speech) ---------------- */
+const micBtn = document.getElementById('mic-btn');
+const voiceStatus = document.getElementById('voice-status');
+const voiceToggle = document.getElementById('voice-toggle');
+const voiceToggleLabel = document.getElementById('voice-toggle-label');
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+let voiceOutputOn = false;
+let recognizer = null;
+let listening = false;
+
+if (!SpeechRecognitionAPI){
+  micBtn.disabled = true;
+  micBtn.title = 'Voice input needs a browser with speech recognition — try Chrome';
+} else {
+  recognizer = new SpeechRecognitionAPI();
+  recognizer.lang = 'en-US';
+  recognizer.interimResults = true;
+  recognizer.maxAlternatives = 1;
+
+  recognizer.onstart = () => {
+    listening = true;
+    micBtn.classList.add('listening');
+    voiceStatus.classList.add('show');
+    voiceStatus.textContent = 'Listening — speak your message…';
+  };
+  recognizer.onresult = (e) => {
+    let text = '';
+    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+    chatInput.value = text;
+    if (e.results[e.results.length - 1].isFinal){
+      voiceStatus.textContent = 'Got it — sending…';
+    }
+  };
+  recognizer.onerror = () => {
+    voiceStatus.textContent = 'Could not hear that — try again or type instead.';
+  };
+  recognizer.onend = () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+    voiceStatus.classList.remove('show');
+    const text = chatInput.value;
+    if (text.trim()){
+      chatInput.value = '';
+      handleUserMessage(text);
+    }
+  };
+
+  micBtn.addEventListener('click', () => {
+    if (listening){ recognizer.stop(); return; }
+    if (busy) return;
+    chatInput.value = '';
+    try { recognizer.start(); } catch(e) { /* already running */ }
+  });
+}
+
+if (!window.speechSynthesis){
+  voiceToggle.disabled = true;
+  voiceToggle.title = 'Voice replies need a browser with speech synthesis — try Chrome, Edge, or Safari';
+  voiceToggle.style.opacity = '0.35';
+} else {
+  voiceToggle.addEventListener('click', () => {
+    voiceOutputOn = !voiceOutputOn;
+    voiceToggle.classList.toggle('on', voiceOutputOn);
+    voiceToggleLabel.textContent = 'Voice replies: ' + (voiceOutputOn ? 'on' : 'off');
+    if (!voiceOutputOn) window.speechSynthesis.cancel();
+  });
+}
+
+function speak(text){
+  if (!voiceOutputOn || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1.02;
+  utter.pitch = 1.0;
+  window.speechSynthesis.speak(utter);
+}
 
 let turn = 0;
 let busy = false;
@@ -439,7 +672,7 @@ async function handleUserMessage(text){
   addBubble(text.trim(), 'me');
   turn++;
   if (turn === 1){
-    addActivity('tag', 'New lead captured', 'Riverside Home Services — inbound web chat');
+    logAction('tag', 'New lead captured', 'Riverside Home Services — inbound web chat');
   }
 
   const intent = matchIntent(text);
@@ -448,9 +681,10 @@ async function handleUserMessage(text){
   await new Promise(r => setTimeout(r, delay));
   hideTyping();
   addBubble(intent.reply, 'them');
+  speak(intent.reply);
   for (const [icon, label, detail] of intent.acts){
     await new Promise(r => setTimeout(r, reduced ? 60 : 260));
-    addActivity(icon, label, detail);
+    logAction(icon, label, detail);
   }
 
   busy = false;
