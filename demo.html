@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Try Genie live — interactive demo</title>
-<meta name="description" content="Message a mock version of Genie the way a customer would, and watch it work in real time — replies, tagging, booking holds, and follow-ups, live.">
+<title>Try Super Agent live — interactive demo</title>
+<meta name="description" content="Message a mock version of Super Agent the way a customer would, and watch it work in real time — replies, tagging, booking holds, and follow-ups, live.">
 <style>
   :root{
     --bg: oklch(0.1 0.007 273);
@@ -182,7 +182,7 @@
 
 <nav>
   <div class="wrap">
-    <a class="brand" href="index.html"><span class="brand-mark"></span>Genie</a>
+    <a class="brand" href="index.html"><span class="brand-mark"></span>Super Agent</a>
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="index.html#what">What it does</a>
@@ -198,11 +198,11 @@
 <header class="demo-head">
   <div class="wrap">
     <div class="demo-kicker"><span class="dot"></span>Live interactive demo &middot; no signup required</div>
-    <h1>Try Genie yourself — right now.</h1>
-    <p>Type a message the way a customer would. This Genie is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.</p>
+    <h1>Try Super Agent yourself — right now.</h1>
+    <p>Type a message the way a customer would. This Super Agent is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.</p>
     <div class="demo-note">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor"/><path d="M6.5 4.2v3M6.5 8.7h.01" stroke="currentColor" stroke-linecap="round"/></svg>
-      This is a scripted demo of typical replies — your real Genie learns your actual business instead.
+      This is a scripted demo of typical replies — your real Super Agent learns your actual business instead.
     </div>
   </div>
 </header>
@@ -216,7 +216,7 @@
           <div class="chat-avatar"></div>
           <div>
             <div class="who">Riverside Home Services</div>
-            <div class="sub">Genie is online &middot; replies instantly</div>
+            <div class="sub">Super Agent is online &middot; replies instantly</div>
           </div>
         </div>
         <div class="chat-scroll" id="chat-scroll"></div>
@@ -236,10 +236,10 @@
       </div>
 
       <div class="activity-panel glass">
-        <div class="activity-head"><span class="dot"></span>Genie's activity — live</div>
-        <div class="activity-sub">What Genie is doing behind the scenes as the conversation happens — the part your customers never see.</div>
+        <div class="activity-head"><span class="dot"></span>Super Agent's activity — live</div>
+        <div class="activity-sub">What Super Agent is doing behind the scenes as the conversation happens — the part your customers never see.</div>
         <div class="activity-list" id="activity-list">
-          <div class="activity-empty" id="activity-empty">Send a message on the left to see Genie start working.</div>
+          <div class="activity-empty" id="activity-empty">Send a message on the left to see Super Agent start working.</div>
         </div>
       </div>
 
@@ -252,14 +252,14 @@
     <h2>This could be answering your leads tonight.</h2>
     <p>Free to start. No cost until day 7, and only for what it actually uses.</p>
     <div class="ctas">
-      <a class="btn-primary" href="index.html#signup-section">Start your Genie — free</a>
+      <a class="btn-primary" href="index.html#signup-section">Start your Super Agent — free</a>
       <a class="btn-ghost" href="index.html">Back to overview</a>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="wrap">&copy; <span id="year"></span> Genie. This page is a scripted demo and not connected to any real business or account.</div>
+  <div class="wrap">&copy; <span id="year"></span> Super Agent. This page is a scripted demo and not connected to any real business or account.</div>
 </footer>
 
 <script>
@@ -326,9 +326,9 @@ function hideTyping(){
   if (el) el.remove();
 }
 
-/* Intent matching: ordered rules, first match wins. Each intent returns a Genie
+/* Intent matching: ordered rules, first match wins. Each intent returns a Super Agent
    reply plus one or two "activity" log entries so the demo shows both sides —
-   what the customer sees, and what Genie is doing behind the scenes. */
+   what the customer sees, and what Super Agent is doing behind the scenes. */
 function matchIntent(msg){
   const m = msg.toLowerCase();
 
@@ -385,7 +385,7 @@ function matchIntent(msg){
   }
   if (/are you (a bot|real|human|ai)|robot|chatbot/.test(m)){
     return {
-      reply: "I'm Genie — an AI that handles the day-to-day for this business: replies, booking, follow-ups. I'm not a person, but I've got real access to the calendar and pricing, so I can actually get things done, not just chat.",
+      reply: "I'm Super Agent — an AI that handles the day-to-day for this business: replies, booking, follow-ups. I'm not a person, but I've got real access to the calendar and pricing, so I can actually get things done, not just chat.",
       acts: [
         ['tag', 'Noted: asked about AI', 'No action needed — kept the conversation moving'],
       ],
@@ -478,7 +478,7 @@ suggestRow.addEventListener('click', (e) => {
   showTyping();
   await new Promise(r => setTimeout(r, reduced ? 200 : 900));
   hideTyping();
-  addBubble("Hi! Thanks for stopping by Riverside Home Services. I'm Genie — ask me anything a real customer might, like pricing, booking, or hours, and watch how I handle it.", 'them');
+  addBubble("Hi! Thanks for stopping by Riverside Home Services. I'm Super Agent — ask me anything a real customer might, like pricing, booking, or hours, and watch how I handle it.", 'them');
 })();
 </script>
 </body>
