@@ -244,6 +244,18 @@
   .demo-cta .ctas{ margin-top:28px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
 
   footer{ border-top:1px solid var(--border-soft); padding: 34px 0; text-align:center; font-size:12.5px; color: var(--faint); }
+
+  /* ---------- language toggle ---------- */
+  .lang-toggle{ display:flex; align-items:center; gap:0; font-family:'Fraunces', serif; font-weight:600; font-size:14px;
+    border-radius:999px; border:1.5px solid oklch(0.74 0.19 272 / 0.55); background: oklch(1 0 0 / 0.04); cursor:pointer;
+    overflow:hidden; padding:0; box-shadow: 0 0 0 1px oklch(0.74 0.19 272 / 0.12), 0 4px 18px -8px oklch(0.74 0.19 272 / 0.5);
+    transition: box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .lang-toggle:hover{ border-color: oklch(0.78 0.15 210 / 0.7); }
+  .lang-toggle .lang-opt{ padding:8px 14px; color: var(--faint); transition: color .3s var(--ease), background .3s var(--ease); }
+  .lang-toggle .lang-sep{ color: var(--faint); opacity:0.4; font-weight:400; }
+  .lang-toggle[data-active="en"] .lang-opt[data-lang="en"]{ color: var(--ink); background: linear-gradient(135deg, oklch(0.74 0.19 272 / 0.35), oklch(0.78 0.15 210 / 0.22)); }
+  .lang-toggle[data-active="es"] .lang-opt[data-lang="es"]{ color: var(--ink); background: linear-gradient(135deg, oklch(0.74 0.19 272 / 0.35), oklch(0.78 0.15 210 / 0.22)); }
+  @media (max-width: 480px){ .lang-toggle .lang-opt{ padding:7px 10px; font-size:12.5px; } }
 </style>
 </head>
 <body>
@@ -253,25 +265,28 @@
   <div class="wrap">
     <a class="brand" href="index.html"><span class="brand-mark"></span>Super Agent</a>
     <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="index.html#what">What it does</a>
-      <a href="index.html#specialists">Specialists</a>
-      <a href="index.html#signup-section">Pricing</a>
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="index.html#what" data-i18n="nav.what">What it does</a>
+      <a href="index.html#specialists" data-i18n="nav.specialists">Specialists</a>
+      <a href="index.html#signup-section" data-i18n="nav.pricing">Pricing</a>
     </div>
     <div class="nav-right">
-      <button class="nav-cta" onclick="location.href='index.html#signup-section'">Start free</button>
+      <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Switch language / Cambiar idioma">
+        <span class="lang-opt" data-lang="en">EN</span><span class="lang-sep">/</span><span class="lang-opt" data-lang="es">ES</span>
+      </button>
+      <button class="nav-cta" onclick="location.href='index.html#signup-section'" data-i18n="nav.cta">Start free</button>
     </div>
   </div>
 </nav>
 
 <header class="demo-head">
   <div class="wrap">
-    <div class="demo-kicker"><span class="dot"></span>Live interactive demo &middot; no signup required</div>
-    <h1>Try Super Agent yourself — right now.</h1>
-    <p>Type a message the way a customer would. This Super Agent is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.</p>
+    <div class="demo-kicker"><span class="dot"></span><span data-i18n="head.kicker">Live interactive demo &middot; no signup required</span></div>
+    <h1 data-i18n="head.h1">Try Super Agent yourself — right now.</h1>
+    <p data-i18n-html="head.sub">Type a message the way a customer would. This Super Agent is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.</p>
     <div class="demo-note">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor"/><path d="M6.5 4.2v3M6.5 8.7h.01" stroke="currentColor" stroke-linecap="round"/></svg>
-      This is a scripted demo of typical replies — your real Super Agent learns your actual business instead.
+      <span data-i18n="head.note">This is a scripted demo of typical replies — your real Super Agent learns your actual business instead.</span>
     </div>
   </div>
 </header>
@@ -285,26 +300,29 @@
           <div class="chat-avatar"></div>
           <div>
             <div class="who">Riverside Home Services</div>
-            <div class="sub">Super Agent is online &middot; replies instantly</div>
+            <div class="sub" data-i18n="chat.status">Super Agent is online &middot; replies instantly</div>
           </div>
           <button class="voice-toggle" id="voice-toggle" type="button" title="Have Super Agent speak its replies out loud">
-            <span class="vdot"></span><span id="voice-toggle-label">Voice replies: off</span>
+            <span class="vdot"></span><span id="voice-toggle-label" data-i18n="chat.voiceOff">Voice replies: off</span>
           </button>
         </div>
         <div class="chat-scroll" id="chat-scroll"></div>
-        <div class="voice-status" id="voice-status">Listening — speak your message…</div>
+        <div class="voice-status" id="voice-status" data-i18n="chat.listening">Listening — speak your message…</div>
         <div class="suggest-row" id="suggest-row">
-          <button class="suggest-chip" data-msg="Do you do same-week estimates?">Same-week estimates?</button>
-          <button class="suggest-chip" data-msg="How much for a water heater replacement?">Water heater pricing?</button>
-          <button class="suggest-chip" data-msg="Can someone come out today, it's urgent">It's urgent, today?</button>
-          <button class="suggest-chip" data-msg="Do you service the 80203 zip code?">Do you cover my area?</button>
-          <button class="suggest-chip" data-msg="What are your hours?">Your hours?</button>
+          <button class="suggest-chip" data-msg-en="Do you do same-week estimates?" data-msg-es="¿Hacen cotizaciones la misma semana?" data-i18n="chip.estimate">Same-week estimates?</button>
+          <button class="suggest-chip" data-msg-en="How much for a water heater replacement?" data-msg-es="¿Cuánto cuesta cambiar un calentador de agua?" data-i18n="chip.price">Water heater pricing?</button>
+          <button class="suggest-chip" data-msg-en="Can someone come out today, it's urgent" data-msg-es="¿Puede venir alguien hoy? Es urgente" data-i18n="chip.urgent">It's urgent, today?</button>
+          <button class="suggest-chip" data-msg-en="Can you book me for Thursday afternoon?" data-msg-es="¿Me pueden agendar para el jueves por la tarde?" data-i18n="chip.book">Book an appointment?</button>
+          <button class="suggest-chip" data-msg-en="Do you service the 80203 zip code?" data-msg-es="¿Dan servicio en el código postal 80203?" data-i18n="chip.area">Do you cover my area?</button>
+          <button class="suggest-chip" data-msg-en="What are your hours?" data-msg-es="¿Cuál es su horario?" data-i18n="chip.hours">Your hours?</button>
+          <button class="suggest-chip" data-msg-en="What exactly can you help with?" data-msg-es="¿Con qué exactamente pueden ayudarme?" data-i18n="chip.capabilities">What can you do?</button>
+          <button class="suggest-chip" data-msg-en="Are you a real person or a bot?" data-msg-es="¿Eres una persona real o un bot?" data-i18n="chip.bot">Are you a bot?</button>
         </div>
         <form class="chat-input-row" id="chat-form">
           <button class="mic-btn" id="mic-btn" type="button" aria-label="Speak your message" title="Click to talk">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a2.2 2.2 0 0 0-2.2 2.2v4.2a2.2 2.2 0 0 0 4.4 0V3.7A2.2 2.2 0 0 0 8 1.5Z" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           </button>
-          <input id="chat-input" type="text" placeholder="Type or click the mic to talk…" autocomplete="off">
+          <input id="chat-input" type="text" placeholder="Type or click the mic to talk…" autocomplete="off" data-i18n-placeholder="chat.inputPh">
           <button class="chat-send" type="submit" aria-label="Send">
             <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M2.5 10L17.5 2.5L12.5 17.5L9.5 11.5L2.5 10Z" stroke="#141625" stroke-width="1.6" stroke-linejoin="round"/></svg>
           </button>
@@ -312,7 +330,7 @@
       </div>
 
       <div class="visual-panel glass">
-        <div class="visual-panel-note"><b>Simulated visualization</b> — shows the kind of screens and actions Super Agent touches in the background. Not a live screen recording.</div>
+        <div class="visual-panel-note"><b data-i18n="vis.badge">Simulated visualization</b> <span data-i18n="vis.note">— shows the kind of screens and actions Super Agent touches in the background. Not a live screen recording.</span></div>
         <div class="browser-mock">
           <div class="browser-chrome">
             <div class="browser-dots"><span></span><span></span><span></span></div>
@@ -332,17 +350,17 @@
             <div class="visual-cards" id="visual-cards"></div>
             <div class="browser-screen-idle" id="browser-screen-idle">
               <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v6l4 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4"/></svg>
-              Send a message to watch Super Agent open the right screens and take action.
+              <span data-i18n="vis.idle">Send a message to watch Super Agent open the right screens and take action.</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="activity-panel glass">
-        <div class="activity-head"><span class="dot"></span>Super Agent's activity — live</div>
-        <div class="activity-sub">What Super Agent is doing behind the scenes as the conversation happens — the part your customers never see.</div>
+        <div class="activity-head"><span class="dot"></span><span data-i18n="act.head">Super Agent's activity — live</span></div>
+        <div class="activity-sub" data-i18n="act.sub">What Super Agent is doing behind the scenes as the conversation happens — the part your customers never see.</div>
         <div class="activity-list" id="activity-list">
-          <div class="activity-empty" id="activity-empty">Send a message on the left to see Super Agent start working.</div>
+          <div class="activity-empty" id="activity-empty" data-i18n="act.empty">Send a message on the left to see Super Agent start working.</div>
         </div>
       </div>
 
@@ -352,21 +370,89 @@
 
 <section class="demo-cta">
   <div class="wrap">
-    <h2>This could be answering your leads tonight.</h2>
-    <p>Free to start. No cost until day 7, and only for what it actually uses.</p>
+    <h2 data-i18n="cta.h2">This could be answering your leads tonight.</h2>
+    <p data-i18n="cta.sub">Free to start. No cost until day 7, and only for what it actually uses.</p>
     <div class="ctas">
-      <a class="btn-primary" href="index.html#signup-section">Start your Super Agent — free</a>
-      <a class="btn-ghost" href="index.html">Back to overview</a>
+      <a class="btn-primary" href="index.html#signup-section" data-i18n="cta.primary">Start your Super Agent — free</a>
+      <a class="btn-ghost" href="index.html" data-i18n="cta.back">Back to overview</a>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="wrap">&copy; <span id="year"></span> Super Agent. This page is a scripted demo and not connected to any real business or account.</div>
+  <div class="wrap">&copy; <span id="year"></span> <span data-i18n="foot.note">Super Agent. This page is a scripted demo and not connected to any real business or account.</span></div>
 </footer>
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------------- language toggle (EN / ES) ---------------- */
+const DEMO_I18N = {
+  en: {
+    'nav.home':'Home', 'nav.what':'What it does', 'nav.specialists':'Specialists', 'nav.pricing':'Pricing', 'nav.cta':'Start free',
+    'head.kicker':'Live interactive demo &middot; no signup required',
+    'head.h1':'Try Super Agent yourself — right now.',
+    'head.sub':'Type a message the way a customer would. This Super Agent is playing the role of a fictional business, <strong>Riverside Home Services</strong>, so you can see exactly how it replies, qualifies, and works in the background — live, in your browser.',
+    'head.note':'This is a scripted demo of typical replies — your real Super Agent learns your actual business instead.',
+    'chat.status':'Super Agent is online &middot; replies instantly', 'chat.voiceOff':'Voice replies: off', 'chat.voiceOn':'Voice replies: on',
+    'chat.listening':'Listening — speak your message…', 'chat.inputPh':'Type or click the mic to talk…',
+    'chip.estimate':'Same-week estimates?', 'chip.price':'Water heater pricing?', 'chip.urgent':"It's urgent, today?", 'chip.book':'Book an appointment?',
+    'chip.area':'Do you cover my area?', 'chip.hours':'Your hours?', 'chip.capabilities':'What can you do?', 'chip.bot':'Are you a bot?',
+    'vis.badge':'Simulated visualization', 'vis.note':'— shows the kind of screens and actions Super Agent touches in the background. Not a live screen recording.',
+    'vis.idle':'Send a message to watch Super Agent open the right screens and take action.',
+    'act.head':"Super Agent's activity — live", 'act.sub':'What Super Agent is doing behind the scenes as the conversation happens — the part your customers never see.',
+    'act.empty':'Send a message on the left to see Super Agent start working.',
+    'cta.h2':'This could be answering your leads tonight.', 'cta.sub':'Free to start. No cost until day 7, and only for what it actually uses.',
+    'cta.primary':'Start your Super Agent — free', 'cta.back':'Back to overview',
+    'foot.note':'Super Agent. This page is a scripted demo and not connected to any real business or account.',
+    greeting: "Hi! Thanks for stopping by Riverside Home Services. I'm Super Agent — ask me anything a real customer might, like pricing, booking, or hours, and watch how I handle it.",
+  },
+  es: {
+    'nav.home':'Inicio', 'nav.what':'Qué hace', 'nav.specialists':'Especialistas', 'nav.pricing':'Precios', 'nav.cta':'Empezar gratis',
+    'head.kicker':'Demo interactiva en vivo &middot; sin registro',
+    'head.h1':'Prueba Super Agent tú mismo — ahora mismo.',
+    'head.sub':'Escribe un mensaje como lo haría un cliente. Este Super Agent está interpretando a un negocio ficticio, <strong>Riverside Home Services</strong>, para que veas exactamente cómo responde, califica y trabaja detrás de escena — en vivo, en tu navegador.',
+    'head.note':'Esta es una demo con guion de respuestas típicas — tu Super Agent real aprende tu negocio real.',
+    'chat.status':'Super Agent está en línea &middot; responde al instante', 'chat.voiceOff':'Respuestas por voz: apagado', 'chat.voiceOn':'Respuestas por voz: encendido',
+    'chat.listening':'Escuchando — di tu mensaje…', 'chat.inputPh':'Escribe o haz clic en el micrófono para hablar…',
+    'chip.estimate':'¿Cotizan la misma semana?', 'chip.price':'¿Precio de calentador de agua?', 'chip.urgent':'¿Es urgente, hoy?', 'chip.book':'¿Agendar una cita?',
+    'chip.area':'¿Cubren mi zona?', 'chip.hours':'¿Su horario?', 'chip.capabilities':'¿Qué pueden hacer?', 'chip.bot':'¿Eres un bot?',
+    'vis.badge':'Visualización simulada', 'vis.note':'— muestra el tipo de pantallas y acciones que Super Agent usa detrás de escena. No es una grabación de pantalla en vivo.',
+    'vis.idle':'Envía un mensaje para ver a Super Agent abrir las pantallas correctas y actuar.',
+    'act.head':'Actividad de Super Agent — en vivo', 'act.sub':'Lo que Super Agent hace detrás de escena mientras ocurre la conversación — la parte que tus clientes nunca ven.',
+    'act.empty':'Envía un mensaje a la izquierda para ver a Super Agent empezar a trabajar.',
+    'cta.h2':'Esto podría estar respondiendo a tus clientes esta noche.', 'cta.sub':'Gratis para empezar. Sin costo hasta el día 7, y solo por lo que realmente usa.',
+    'cta.primary':'Activa tu Super Agent — gratis', 'cta.back':'Volver al resumen',
+    'foot.note':'Super Agent. Esta página es una demo con guion y no está conectada a ningún negocio o cuenta real.',
+    greeting: "¡Hola! Gracias por visitar Riverside Home Services. Soy Super Agent — pregúntame lo que preguntaría un cliente real, como precios, citas u horarios, y mira cómo lo manejo.",
+  },
+};
+let currentLang = localStorage.getItem('superagent_lang') || 'en';
+function applyDemoLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  localStorage.setItem('superagent_lang', lang);
+  const dict = DEMO_I18N[lang] || DEMO_I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] != null) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (dict[key] != null) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key] != null) el.placeholder = dict[key];
+  });
+  const toggle = document.getElementById('lang-toggle');
+  if (toggle) toggle.setAttribute('data-active', lang);
+}
+const demoLangToggle = document.getElementById('lang-toggle');
+if (demoLangToggle){
+  demoLangToggle.addEventListener('click', () => applyDemoLang(currentLang === 'en' ? 'es' : 'en'));
+}
+applyDemoLang(currentLang);
 
 /* ---------------- mock genie response engine ---------------- */
 const chatScroll = document.getElementById('chat-scroll');
@@ -493,17 +579,52 @@ if (!window.speechSynthesis){
   voiceToggle.addEventListener('click', () => {
     voiceOutputOn = !voiceOutputOn;
     voiceToggle.classList.toggle('on', voiceOutputOn);
-    voiceToggleLabel.textContent = 'Voice replies: ' + (voiceOutputOn ? 'on' : 'off');
+    const dict = DEMO_I18N[currentLang] || DEMO_I18N.en;
+    voiceToggleLabel.textContent = voiceOutputOn ? dict['chat.voiceOn'] : dict['chat.voiceOff'];
     if (!voiceOutputOn) window.speechSynthesis.cancel();
   });
+}
+
+// pick the most natural-sounding installed voice for the current language — browsers ship several
+// voices per language and the default pick is often the flattest, robotic-sounding one. Chrome/Edge
+// expose higher-quality "Natural"/"Online"/network voices when available; prefer those.
+let cachedVoices = [];
+function refreshVoices(){ if (window.speechSynthesis) cachedVoices = window.speechSynthesis.getVoices(); }
+if (window.speechSynthesis){
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+function scoreVoice(v, langPrefix){
+  let score = 0;
+  const name = v.name.toLowerCase();
+  if (!v.lang.toLowerCase().startsWith(langPrefix)) return -1;
+  if (/natural|neural|online|premium|enhanced|studio/.test(name)) score += 6;
+  if (/google/.test(name)) score += 3;
+  if (/samantha|siri|ava|zoe|paulina|helena|monica/.test(name)) score += 3;
+  if (v.localService === false) score += 1; // network voices are usually higher quality
+  if (langPrefix === 'es' && /mexico|us|latin/.test(name)) score += 1;
+  return score;
+}
+function getBestVoice(langPrefix){
+  if (!cachedVoices.length) refreshVoices();
+  const candidates = cachedVoices.map(v => ({ v, s: scoreVoice(v, langPrefix) })).filter(c => c.s >= 0);
+  if (!candidates.length) return null;
+  candidates.sort((a,b) => b.s - a.s);
+  return candidates[0].v;
 }
 
 function speak(text){
   if (!voiceOutputOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 1.02;
-  utter.pitch = 1.0;
+  const lang = (typeof currentLang !== 'undefined' && currentLang === 'es') ? 'es' : 'en';
+  const voice = getBestVoice(lang);
+  if (voice) utter.voice = voice;
+  utter.lang = lang === 'es' ? 'es-ES' : 'en-US';
+  // slightly slower than default + a touch lower pitch reads as calmer and more natural,
+  // rather than the clipped, hurried cadence of default browser TTS
+  utter.rate = 0.97;
+  utter.pitch = 0.96;
   window.speechSynthesis.speak(utter);
 }
 
@@ -561,107 +682,90 @@ function hideTyping(){
 
 /* Intent matching: ordered rules, first match wins. Each intent returns a Super Agent
    reply plus one or two "activity" log entries so the demo shows both sides —
-   what the customer sees, and what Super Agent is doing behind the scenes. */
+   what the customer sees, and what Super Agent is doing behind the scenes.
+   Rules run in whichever language the page is currently set to, so a Spanish message
+   gets matched by Spanish keywords and replied to in Spanish — same as the real product. */
+const INTENT_RULES = {
+  en: [
+    { test:/urgent|emergency|asap|right now|today|flood|leak|no heat|no ac|burst/,
+      reply:"That sounds urgent — I can get someone out today. Can you give me the address and a quick description of what's happening? I'll flag this as priority and text you a confirmed window within a few minutes.",
+      acts:[['flag','Escalated as urgent','Flagged for same-day dispatch, notified on-call tech'],['tag','Tagged: high-intent lead','Priority queue — response time under 2 minutes']] },
+    { test:/price|cost|how much|estimate|quote/,
+      reply:"Happy to get you a ballpark — pricing depends a bit on your setup, but most jobs like that run $350–$650 installed. Want me to get you an exact quote? I just need your address and a couple photos if you have them.",
+      acts:[['tag','Tagged: pricing inquiry','Logged as a warm lead — pricing requested'],['reply','Drafted quote request','Queued a follow-up if no photos are sent within 24 hrs']] },
+    { test:/book|schedule|appointment|available|thursday|friday|monday|tuesday|wednesday|saturday|sunday|tomorrow/,
+      reply:"I can hold a spot for that. I've got openings Thursday 10–12 or Friday 1–3 this week — which works better? I'll lock it in and text you a reminder the day before.",
+      acts:[['calendar','Booking hold created','Thursday 10–12 reserved pending confirmation'],['bell','Reminder queued','Text reminder scheduled for 24 hrs before the appointment']] },
+    { test:/zip|area|location|serve|city|near|address/,
+      reply:"Yep, we cover that area — usually same-week for that zip. Want me to check exact availability for your address?",
+      acts:[['tag','Tagged: service-area check','Confirmed coverage, offered scheduling next']] },
+    { test:/hour|open|close|time.*work|when.*open/,
+      reply:"We're on-call 7am–8pm every day, and for real emergencies we can usually get someone out after hours too. Want me to check tonight's availability?",
+      acts:[['reply','Answered hours inquiry','No escalation needed — informational reply']] },
+    { test:/review|yelp|google|rating/,
+      reply:"Thank you, that means a lot! If you've got a minute, a Google review really helps us out — I can text you the link. And if anything wasn't perfect, tell me now and I'll make it right personally.",
+      acts:[['reply','Drafted review-request follow-up','Queued to send after the job is marked complete']] },
+    { test:/are you (a bot|real|human|ai)|robot|chatbot/,
+      reply:"I'm Super Agent — an AI that handles the day-to-day for this business: replies, booking, follow-ups. I'm not a person, but I've got real access to the calendar and pricing, so I can actually get things done, not just chat.",
+      acts:[['tag','Noted: asked about AI','No action needed — kept the conversation moving']] },
+    { test:/what can you do|how does this work|capabilities|features/,
+      reply:"I answer every message instantly, qualify what's needed, book or hold appointments, send quotes, follow up on quiet leads, and even work on marketing when things are slow — all without anyone here lifting a finger.",
+      acts:[['reply','Shared capabilities overview','Standard response — no lead action required']] },
+    { test:/^(hi|hey|hello|yo|sup)\b/,
+      reply:"Hey there! Thanks for reaching out to Riverside Home Services — what can I help with? Repair, installation, or just a quote?",
+      acts:[['tag','New conversation started','Logged as a new inbound lead']] },
+    { test:/thank|thanks|appreciate/,
+      reply:"Anytime! I'll get everything set up on my end — you'll get a text confirmation shortly.",
+      acts:[['reply','Wrapped up conversation','No further action pending']] },
+    { test:/bye|goodbye|later/,
+      reply:"Talk soon! I'll keep an eye on things from here.", acts:[] },
+  ],
+  es: [
+    { test:/urgente|emergencia|ahora mismo|ahora|hoy|inundaci|fuga|se rompi|no (hay|tengo) calefacci|no (hay|tengo) aire/,
+      reply:"Eso suena urgente — puedo enviar a alguien hoy mismo. ¿Me das la dirección y una breve descripción de lo que está pasando? Voy a marcar esto como prioridad y te enviaré un horario confirmado por mensaje en unos minutos.",
+      acts:[['flag','Escalado como urgente','Marcado para despacho el mismo día, se notificó al técnico de guardia'],['tag','Etiquetado: cliente de alta prioridad','Cola prioritaria — tiempo de respuesta menor a 2 minutos']] },
+    { test:/precio|costo|cuanto|cuánto|cotizaci|presupuesto/,
+      reply:"Con gusto te doy un estimado — el precio depende un poco de tu instalación, pero trabajos así suelen costar entre $350 y $650 instalados. ¿Quieres que te prepare una cotización exacta? Solo necesito tu dirección y un par de fotos si las tienes.",
+      acts:[['tag','Etiquetado: consulta de precio','Registrado como cliente potencial interesado — pidió precio'],['reply','Solicitud de cotización redactada','Seguimiento programado si no se envían fotos en 24 horas']] },
+    { test:/agend|cita|reserv|disponib|jueves|viernes|lunes|martes|miercoles|miércoles|sabado|sábado|domingo|manana|mañana/,
+      reply:"Puedo apartarte un horario. Tengo disponibilidad el jueves de 10 a 12 o el viernes de 1 a 3 esta semana — ¿cuál te queda mejor? Lo confirmo y te envío un recordatorio por mensaje un día antes.",
+      acts:[['calendar','Reserva de cita creada','Jueves 10–12 reservado, pendiente de confirmación'],['bell','Recordatorio programado','Recordatorio por mensaje programado 24 horas antes de la cita']] },
+    { test:/codigo postal|código postal|zona|ubicaci|cerca|direcci|cubren|dan servicio/,
+      reply:"Sí, damos servicio en esa zona — normalmente la misma semana para ese código postal. ¿Quieres que revise disponibilidad exacta para tu dirección?",
+      acts:[['tag','Etiquetado: verificación de zona de servicio','Cobertura confirmada, se ofreció agendar a continuación']] },
+    { test:/horario|abren|cierran|a que hora|a qué hora/,
+      reply:"Estamos disponibles de 7am a 8pm todos los días, y para emergencias reales normalmente podemos enviar a alguien fuera de horario también. ¿Quieres que revise la disponibilidad de esta noche?",
+      acts:[['reply','Consulta de horario respondida','No se necesitó escalar — respuesta informativa']] },
+    { test:/reseña|resena|yelp|google|calificaci/,
+      reply:"¡Muchas gracias, significa mucho! Si tienes un minuto, una reseña en Google nos ayuda muchísimo — te puedo enviar el enlace por mensaje. Y si algo no salió perfecto, dímelo ahora y lo resuelvo personalmente.",
+      acts:[['reply','Seguimiento de solicitud de reseña redactado','Programado para enviarse cuando el trabajo se marque como completo']] },
+    { test:/eres (un bot|real|humano|ia)|robot|chatbot/,
+      reply:"Soy Super Agent — una IA que se encarga del día a día de este negocio: respuestas, citas, seguimiento. No soy una persona, pero tengo acceso real al calendario y a los precios, así que realmente puedo resolver cosas, no solo conversar.",
+      acts:[['tag','Nota: preguntó sobre la IA','No se necesitó acción — se mantuvo la conversación fluida']] },
+    { test:/que pueden hacer|qué pueden hacer|como funciona|cómo funciona|capacidades|funciones/,
+      reply:"Respondo cada mensaje al instante, califico lo que se necesita, agendo o reservo citas, envío cotizaciones, doy seguimiento a clientes callados, y hasta trabajo en marketing cuando hay poco movimiento — todo sin que nadie aquí mueva un dedo.",
+      acts:[['reply','Resumen de capacidades compartido','Respuesta estándar — no se requirió acción sobre el cliente']] },
+    { test:/^(hola|oye|buenas|que tal|qué tal)\b/,
+      reply:"¡Hola! Gracias por contactar a Riverside Home Services — ¿en qué te puedo ayudar? ¿Reparación, instalación, o solo una cotización?",
+      acts:[['tag','Nueva conversación iniciada','Registrado como nuevo cliente potencial']] },
+    { test:/gracias|te lo agradezco/,
+      reply:"¡Cuando quieras! Voy a dejar todo listo de mi parte — recibirás una confirmación por mensaje en breve.",
+      acts:[['reply','Conversación finalizada','Sin más acciones pendientes']] },
+    { test:/adios|adiós|hasta luego|nos vemos/,
+      reply:"¡Hasta pronto! Seguiré pendiente de todo desde aquí.", acts:[] },
+  ],
+};
+const FALLBACK = {
+  en: { reply:"Got it — tell me a bit more about what you need help with (repair, install, or just pricing?) and I'll get you sorted right away.",
+    acts:[['tag','Logged inbound message','Awaiting more detail to qualify the lead']] },
+  es: { reply:"Entendido — cuéntame un poco más sobre en qué necesitas ayuda (¿reparación, instalación, o solo precio?) y te resuelvo de inmediato.",
+    acts:[['tag','Mensaje entrante registrado','Esperando más detalle para calificar al cliente']] },
+};
 function matchIntent(msg){
   const m = msg.toLowerCase();
-
-  if (/urgent|emergency|asap|right now|today|flood|leak|no heat|no ac|burst/.test(m)){
-    return {
-      reply: "That sounds urgent — I can get someone out today. Can you give me the address and a quick description of what's happening? I'll flag this as priority and text you a confirmed window within a few minutes.",
-      acts: [
-        ['flag', 'Escalated as urgent', 'Flagged for same-day dispatch, notified on-call tech'],
-        ['tag', 'Tagged: high-intent lead', 'Priority queue — response time under 2 minutes'],
-      ],
-    };
-  }
-  if (/price|cost|how much|estimate|quote/.test(m)){
-    return {
-      reply: "Happy to get you a ballpark — pricing depends a bit on your setup, but most jobs like that run $350–$650 installed. Want me to get you an exact quote? I just need your address and a couple photos if you have them.",
-      acts: [
-        ['tag', 'Tagged: pricing inquiry', 'Logged as a warm lead — pricing requested'],
-        ['reply', 'Drafted quote request', 'Queued a follow-up if no photos are sent within 24 hrs'],
-      ],
-    };
-  }
-  if (/book|schedule|appointment|available|thursday|friday|monday|tuesday|wednesday|saturday|sunday|tomorrow/.test(m)){
-    return {
-      reply: "I can hold a spot for that. I've got openings Thursday 10–12 or Friday 1–3 this week — which works better? I'll lock it in and text you a reminder the day before.",
-      acts: [
-        ['calendar', 'Booking hold created', 'Thursday 10–12 reserved pending confirmation'],
-        ['bell', 'Reminder queued', 'Text reminder scheduled for 24 hrs before the appointment'],
-      ],
-    };
-  }
-  if (/zip|area|location|serve|city|near|address/.test(m)){
-    return {
-      reply: "Yep, we cover that area — usually same-week for that zip. Want me to check exact availability for your address?",
-      acts: [
-        ['tag', 'Tagged: service-area check', 'Confirmed coverage, offered scheduling next'],
-      ],
-    };
-  }
-  if (/hour|open|close|time.*work|when.*open/.test(m)){
-    return {
-      reply: "We're on-call 7am–8pm every day, and for real emergencies we can usually get someone out after hours too. Want me to check tonight's availability?",
-      acts: [
-        ['reply', 'Answered hours inquiry', 'No escalation needed — informational reply'],
-      ],
-    };
-  }
-  if (/review|yelp|google|rating/.test(m)){
-    return {
-      reply: "Thank you, that means a lot! If you've got a minute, a Google review really helps us out — I can text you the link. And if anything wasn't perfect, tell me now and I'll make it right personally.",
-      acts: [
-        ['reply', 'Drafted review-request follow-up', 'Queued to send after the job is marked complete'],
-      ],
-    };
-  }
-  if (/are you (a bot|real|human|ai)|robot|chatbot/.test(m)){
-    return {
-      reply: "I'm Super Agent — an AI that handles the day-to-day for this business: replies, booking, follow-ups. I'm not a person, but I've got real access to the calendar and pricing, so I can actually get things done, not just chat.",
-      acts: [
-        ['tag', 'Noted: asked about AI', 'No action needed — kept the conversation moving'],
-      ],
-    };
-  }
-  if (/what can you do|how does this work|capabilities|features/.test(m)){
-    return {
-      reply: "I answer every message instantly, qualify what's needed, book or hold appointments, send quotes, follow up on quiet leads, and even work on marketing when things are slow — all without anyone here lifting a finger.",
-      acts: [
-        ['reply', 'Shared capabilities overview', 'Standard response — no lead action required'],
-      ],
-    };
-  }
-  if (/^(hi|hey|hello|yo|sup)\b/.test(m)){
-    return {
-      reply: "Hey there! Thanks for reaching out to Riverside Home Services — what can I help with? Repair, installation, or just a quote?",
-      acts: [
-        ['tag', 'New conversation started', 'Logged as a new inbound lead'],
-      ],
-    };
-  }
-  if (/thank|thanks|appreciate/.test(m)){
-    return {
-      reply: "Anytime! I'll get everything set up on my end — you'll get a text confirmation shortly.",
-      acts: [
-        ['reply', 'Wrapped up conversation', 'No further action pending'],
-      ],
-    };
-  }
-  if (/bye|goodbye|later/.test(m)){
-    return {
-      reply: "Talk soon! I'll keep an eye on things from here.",
-      acts: [],
-    };
-  }
-
-  // fallback — still qualifies, doesn't dead-end
-  return {
-    reply: "Got it — tell me a bit more about what you need help with (repair, install, or just pricing?) and I'll get you sorted right away.",
-    acts: [
-      ['tag', 'Logged inbound message', 'Awaiting more detail to qualify the lead'],
-    ],
-  };
+  const rules = INTENT_RULES[currentLang] || INTENT_RULES.en;
+  for (const rule of rules){ if (rule.test.test(m)) return { reply: rule.reply, acts: rule.acts }; }
+  return FALLBACK[currentLang] || FALLBACK.en;
 }
 
 async function handleUserMessage(text){
@@ -672,7 +776,10 @@ async function handleUserMessage(text){
   addBubble(text.trim(), 'me');
   turn++;
   if (turn === 1){
-    logAction('tag', 'New lead captured', 'Riverside Home Services — inbound web chat');
+    const firstLeadText = currentLang === 'es'
+      ? ['tag', 'Nuevo cliente potencial capturado', 'Riverside Home Services — chat web entrante']
+      : ['tag', 'New lead captured', 'Riverside Home Services — inbound web chat'];
+    logAction(...firstLeadText);
   }
 
   const intent = matchIntent(text);
@@ -703,7 +810,8 @@ chatForm.addEventListener('submit', (e) => {
 suggestRow.addEventListener('click', (e) => {
   const btn = e.target.closest('.suggest-chip');
   if (!btn || btn.disabled) return;
-  handleUserMessage(btn.dataset.msg);
+  const msg = currentLang === 'es' ? (btn.dataset.msgEs || btn.dataset.msgEn) : (btn.dataset.msgEn || btn.dataset.msgEs);
+  handleUserMessage(msg);
 });
 
 /* opening message, as if the customer already said hi */
@@ -712,7 +820,7 @@ suggestRow.addEventListener('click', (e) => {
   showTyping();
   await new Promise(r => setTimeout(r, reduced ? 200 : 900));
   hideTyping();
-  addBubble("Hi! Thanks for stopping by Riverside Home Services. I'm Super Agent — ask me anything a real customer might, like pricing, booking, or hours, and watch how I handle it.", 'them');
+  addBubble((DEMO_I18N[currentLang] || DEMO_I18N.en).greeting, 'them');
 })();
 </script>
 </body>

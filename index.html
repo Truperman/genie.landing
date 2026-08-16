@@ -121,6 +121,18 @@
   .nav-cta:hover{ transform: translateY(-1px); box-shadow: 0 8px 22px -8px var(--gold-glow); }
   @media (max-width: 760px){ .nav-links{ display:none; } }
 
+  /* ---------- language toggle — deliberately prominent, top of every page ---------- */
+  .lang-toggle{ display:flex; align-items:center; gap:0; font-family:'Fraunces', serif; font-weight:600; font-size:14px;
+    border-radius:999px; border:1.5px solid oklch(0.74 0.19 272 / 0.55); background: oklch(1 0 0 / 0.04); cursor:pointer;
+    overflow:hidden; padding:0; box-shadow: 0 0 0 1px oklch(0.74 0.19 272 / 0.12), 0 4px 18px -8px oklch(0.74 0.19 272 / 0.5);
+    transition: box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .lang-toggle:hover{ border-color: oklch(0.78 0.15 210 / 0.7); box-shadow: 0 0 0 1px oklch(0.78 0.15 210 / 0.2), 0 6px 22px -8px oklch(0.78 0.15 210 / 0.55); }
+  .lang-toggle .lang-opt{ padding:8px 14px; color: var(--faint); transition: color .3s var(--ease), background .3s var(--ease); }
+  .lang-toggle .lang-sep{ color: var(--faint); opacity:0.4; font-weight:400; }
+  .lang-toggle[data-active="en"] .lang-opt[data-lang="en"]{ color: var(--ink); background: linear-gradient(135deg, oklch(0.74 0.19 272 / 0.35), oklch(0.78 0.15 210 / 0.22)); }
+  .lang-toggle[data-active="es"] .lang-opt[data-lang="es"]{ color: var(--ink); background: linear-gradient(135deg, oklch(0.74 0.19 272 / 0.35), oklch(0.78 0.15 210 / 0.22)); }
+  @media (max-width: 480px){ .lang-toggle .lang-opt{ padding:7px 10px; font-size:12.5px; } }
+
   /* ---------- hero ---------- */
   .hero{ padding: 132px 0 110px; text-align:center; }
   .hero-kicker{ font-size:13px; color: var(--faint); margin-bottom:26px; display:flex; align-items:center; justify-content:center; gap:9px; }
@@ -372,28 +384,31 @@
   <div class="wrap">
     <div class="brand"><span class="brand-mark"></span>Super Agent</div>
     <div class="nav-links">
-      <a href="demo.html">Try live demo</a>
-      <a href="#what">What it does</a>
-      <a href="#video">See it work</a>
-      <a href="#specialists">Specialists</a>
-      <a href="#signup-section">Pricing</a>
+      <a href="demo.html" data-i18n="nav.demo">Try live demo</a>
+      <a href="#what" data-i18n="nav.what">What it does</a>
+      <a href="#video" data-i18n="nav.video">See it work</a>
+      <a href="#specialists" data-i18n="nav.specialists">Specialists</a>
+      <a href="#signup-section" data-i18n="nav.pricing">Pricing</a>
     </div>
     <div class="nav-right">
-      <button class="nav-cta" onclick="scrollToSignup()">Start free</button>
+      <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Switch language / Cambiar idioma">
+        <span class="lang-opt" data-lang="en">EN</span><span class="lang-sep">/</span><span class="lang-opt" data-lang="es">ES</span>
+      </button>
+      <button class="nav-cta" onclick="scrollToSignup()" data-i18n="nav.cta">Start free</button>
     </div>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap">
-    <div class="hero-kicker"><span class="dot"></span>Live in minutes &middot; no contract</div>
-    <h1>Your business, <em>working</em> while you're not.</h1>
-    <p class="lede">Super Agent is an AI employee — not a chatbot. It runs your marketing, follows up on every lead, and handles the busywork, around the clock, from day one.</p>
+    <div class="hero-kicker"><span class="dot"></span><span data-i18n="hero.kicker">Live in minutes &middot; no contract</span></div>
+    <h1 data-i18n-html="hero.h1">Your business, <em>working</em> while you're not.</h1>
+    <p class="lede" data-i18n="hero.lede">Super Agent is an AI employee — not a chatbot. It runs your marketing, follows up on every lead, and handles the busywork, around the clock, from day one.</p>
     <div class="hero-ctas">
-      <button class="btn-primary" onclick="scrollToSignup()">Start your Super Agent — free</button>
-      <button class="btn-ghost" onclick="location.href='demo.html'">Try it live — no signup</button>
+      <button class="btn-primary" onclick="scrollToSignup()" data-i18n="hero.ctaPrimary">Start your Super Agent — free</button>
+      <button class="btn-ghost" onclick="location.href='demo.html'" data-i18n="hero.ctaGhost">Try it live — no signup</button>
     </div>
-    <div class="hero-fine">No cost to start. You only pay for what it uses, after day 7.</div>
+    <div class="hero-fine" data-i18n="hero.fine">No cost to start. You only pay for what it uses, after day 7.</div>
     <div class="orb-wrap" data-parallax data-parallax-speed="-0.18">
       <canvas id="orb" width="320" height="320"></canvas>
       <div class="orb-hud" id="orb-hud" aria-hidden="true">
@@ -406,23 +421,23 @@
 <section class="triad" id="what">
   <div class="wrap">
     <div class="triad-head reveal pre">
-      <h2>Three things it never stops doing.</h2>
+      <h2 data-i18n="triad.h2">Three things it never stops doing.</h2>
     </div>
     <div class="triad-grid">
       <div class="triad-item reveal pre">
-        <div class="num">01 &middot; Your leads</div>
-        <h3>Talks to them before you even see them.</h3>
-        <p>Every inbound message gets a real reply — qualifying questions, pricing, next steps — the moment it arrives.</p>
+        <div class="num" data-i18n="triad.num1">01 &middot; Your leads</div>
+        <h3 data-i18n="triad.h1title">Talks to them before you even see them.</h3>
+        <p data-i18n="triad.h1body">Every inbound message gets a real reply — qualifying questions, pricing, next steps — the moment it arrives.</p>
       </div>
       <div class="triad-item reveal pre">
-        <div class="num">02 &middot; Your marketing</div>
-        <h3>Runs without waiting to be asked.</h3>
-        <p>Ad copy, social posts, promo emails — drafted and shipped on its own schedule, not just when you remember to ask.</p>
+        <div class="num" data-i18n="triad.num2">02 &middot; Your marketing</div>
+        <h3 data-i18n="triad.h2title">Runs without waiting to be asked.</h3>
+        <p data-i18n="triad.h2body">Ad copy, social posts, promo emails — drafted and shipped on its own schedule, not just when you remember to ask.</p>
       </div>
       <div class="triad-item reveal pre">
-        <div class="num">03 &middot; Your business</div>
-        <h3>Learns it once, keeps it forever.</h3>
-        <p>A short interview up front — services, pricing, tone — carried into every conversation and every piece of work after.</p>
+        <div class="num" data-i18n="triad.num3">03 &middot; Your business</div>
+        <h3 data-i18n="triad.h3title">Learns it once, keeps it forever.</h3>
+        <p data-i18n="triad.h3body">A short interview up front — services, pricing, tone — carried into every conversation and every piece of work after.</p>
       </div>
     </div>
   </div>
@@ -432,26 +447,26 @@
   <div class="wrap">
     <div class="spot-row reveal pre">
       <div>
-        <h3>Real conversations, not canned replies.</h3>
-        <p>Super Agent reads the situation and responds like someone who actually works there — because as far as your customers know, it does.</p>
+        <h3 data-i18n="spot.r1title">Real conversations, not canned replies.</h3>
+        <p data-i18n="spot.r1body">Super Agent reads the situation and responds like someone who actually works there — because as far as your customers know, it does.</p>
       </div>
       <div class="spot-visual glass glass-hover">
         <div class="chat-mock">
-          <div class="chat-bubble me">Hey, do you do same-week estimates?</div>
-          <div class="chat-bubble">Yes — I can get someone out Thursday. What's the address, and is this a repair or a full install?</div>
-          <div class="chat-bubble me">Repair, kitchen sink</div>
-          <div class="chat-bubble">Got it, I've queued Thursday 10&ndash;12 and texted the details to the team.</div>
+          <div class="chat-bubble me" data-i18n="spot.c1">Hey, do you do same-week estimates?</div>
+          <div class="chat-bubble" data-i18n="spot.c2">Yes — I can get someone out Thursday. What's the address, and is this a repair or a full install?</div>
+          <div class="chat-bubble me" data-i18n="spot.c3">Repair, kitchen sink</div>
+          <div class="chat-bubble" data-i18n="spot.c4">Got it, I've queued Thursday 10&ndash;12 and texted the details to the team.</div>
         </div>
       </div>
     </div>
     <div class="spot-row rev reveal pre">
       <div>
-        <h3>Idle isn't idle.</h3>
-        <p>When there's nothing waiting on it, Super Agent doesn't sit still — it's out improving your next campaign, on its own initiative.</p>
+        <h3 data-i18n="spot.r2title">Idle isn't idle.</h3>
+        <p data-i18n="spot.r2body">When there's nothing waiting on it, Super Agent doesn't sit still — it's out improving your next campaign, on its own initiative.</p>
       </div>
       <div class="spot-visual glass glass-hover">
         <div class="chat-mock">
-          <div class="chat-bubble">Posted this week's promo to Facebook &amp; drafted 3 ad variants for review &mdash; the "same-day service" angle tested best last month, led with that one.</div>
+          <div class="chat-bubble" data-i18n="spot.c5">Posted this week's promo to Facebook &amp; drafted 3 ad variants for review &mdash; the "same-day service" angle tested best last month, led with that one.</div>
         </div>
       </div>
     </div>
@@ -461,45 +476,45 @@
 <section class="capabilities" id="capabilities">
   <div class="wrap">
     <div class="cap-head reveal pre">
-      <h2>Everything it actually does.</h2>
-      <p>Not a chatbot with a script — a real employee. Here's what's running the moment it's live.</p>
+      <h2 data-i18n="cap.h2">Everything it actually does.</h2>
+      <p data-i18n="cap.sub">Not a chatbot with a script — a real employee. Here's what's running the moment it's live.</p>
     </div>
     <div class="cap-grid">
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Answers every lead, instantly</h4><p>Texts, chats, and calls get a real reply — qualifying, pricing, next steps — the moment they arrive, day or night.</p></div>
+        <div><h4 data-i18n="cap.i1t">Answers every lead, instantly</h4><p data-i18n="cap.i1b">Texts, chats, and calls get a real reply — qualifying, pricing, next steps — the moment they arrive, day or night.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Books and follows up</h4><p>Schedules estimates, sends reminders, and chases quiet leads without being told to.</p></div>
+        <div><h4 data-i18n="cap.i2t">Books and follows up</h4><p data-i18n="cap.i2b">Schedules estimates, sends reminders, and chases quiet leads without being told to.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Runs your marketing</h4><p>Social posts, promo emails, and ad copy — drafted and shipped on its own schedule, tested against what's worked before.</p></div>
+        <div><h4 data-i18n="cap.i3t">Runs your marketing</h4><p data-i18n="cap.i3b">Social posts, promo emails, and ad copy — drafted and shipped on its own schedule, tested against what's worked before.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Builds and manages ad campaigns</h4><p>Writes the creative, picks the angle, and can manage a budget you set for paid social and search.</p></div>
+        <div><h4 data-i18n="cap.i4t">Builds and manages ad campaigns</h4><p data-i18n="cap.i4b">Writes the creative, picks the angle, and can manage a budget you set for paid social and search.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Handles quotes and invoicing</h4><p>Drafts quotes from your pricing, sends invoices, and follows up on anything unpaid.</p></div>
+        <div><h4 data-i18n="cap.i5t">Handles quotes and invoicing</h4><p data-i18n="cap.i5b">Drafts quotes from your pricing, sends invoices, and follows up on anything unpaid.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Remembers your business</h4><p>Learns your services, pricing, and tone once — carries it into every conversation after.</p></div>
+        <div><h4 data-i18n="cap.i6t">Remembers your business</h4><p data-i18n="cap.i6b">Learns your services, pricing, and tone once — carries it into every conversation after.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Responds to reviews</h4><p>Replies to Google and Facebook reviews in your voice — thanks the good ones, defuses the bad ones.</p></div>
+        <div><h4 data-i18n="cap.i7t">Responds to reviews</h4><p data-i18n="cap.i7b">Replies to Google and Facebook reviews in your voice — thanks the good ones, defuses the bad ones.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Speaks any language</h4><p>Picks a language preference with every new client and works in it from the first message on.</p></div>
+        <div><h4 data-i18n="cap.i8t">Speaks any language</h4><p data-i18n="cap.i8b">Picks a language preference with every new client and works in it from the first message on.</p></div>
       </div>
       <div class="cap-item glass glass-hover reveal pre">
         <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.6 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div><h4>Never actually stops</h4><p>No lead waiting, no task queued — it works on your next campaign on its own, so the value shows up even between conversations.</p></div>
+        <div><h4 data-i18n="cap.i9t">Never actually stops</h4><p data-i18n="cap.i9b">No lead waiting, no task queued — it works on your next campaign on its own, so the value shows up even between conversations.</p></div>
       </div>
     </div>
   </div>
@@ -508,8 +523,8 @@
 <section class="video-section" id="video">
   <div class="wrap">
     <div class="video-head reveal pre">
-      <h2>See Super Agent, in two minutes.</h2>
-      <p>What it is, what it does on day one, and what changes once it's running your busywork.</p>
+      <h2 data-i18n="video.h2">See Super Agent, in two minutes.</h2>
+      <p data-i18n="video.sub">What it is, what it does on day one, and what changes once it's running your busywork.</p>
     </div>
     <div class="video-frame glass reveal pre">
       <video id="explainer-video" playsinline preload="none" poster="" controls>
@@ -519,7 +534,7 @@
         <div class="play-btn">
           <svg width="24" height="26" viewBox="0 0 24 26" fill="none"><path d="M2 2L22 13L2 24V2Z" fill="#141625"/></svg>
         </div>
-        <div class="video-label">2:14 — What Super Agent is</div>
+        <div class="video-label" data-i18n="video.label">2:14 — What Super Agent is</div>
       </div>
     </div>
   </div>
@@ -528,24 +543,24 @@
 <section class="specialists" id="specialists">
   <div class="wrap">
     <div class="spec-head reveal pre">
-      <h2>It doesn't work alone.</h2>
-      <p>Super Agent can call in its own specialists for the heavier jobs — several running at once, instead of one thing at a time.</p>
+      <h2 data-i18n="spec.h2">It doesn't work alone.</h2>
+      <p data-i18n="spec.sub">Super Agent can call in its own specialists for the heavier jobs — several running at once, instead of one thing at a time.</p>
     </div>
     <div class="spec-grid">
       <div class="spec-card glass glass-hover reveal pre">
-        <span class="tag">Marketing Writer</span>
-        <h3>Drafts ad copy, posts, and emails</h3>
-        <p>Turns out several variants in parallel — three ad angles, or a post plus an email plus a text blast — all at once.</p>
+        <span class="tag" data-i18n="spec.tag1">Marketing Writer</span>
+        <h3 data-i18n="spec.t1">Drafts ad copy, posts, and emails</h3>
+        <p data-i18n="spec.b1">Turns out several variants in parallel — three ad angles, or a post plus an email plus a text blast — all at once.</p>
       </div>
       <div class="spec-card glass glass-hover reveal pre">
-        <span class="tag">Lead Researcher</span>
-        <h3>Qualifies prospects before you call</h3>
-        <p>Researches a lead or a segment, and comes back with the fit — and a real opening line — not just a name and a number.</p>
+        <span class="tag" data-i18n="spec.tag2">Lead Researcher</span>
+        <h3 data-i18n="spec.t2">Qualifies prospects before you call</h3>
+        <p data-i18n="spec.b2">Researches a lead or a segment, and comes back with the fit — and a real opening line — not just a name and a number.</p>
       </div>
       <div class="spec-card glass glass-hover reveal pre">
-        <span class="tag">Growth Analyst</span>
-        <h3>Finds the highest-leverage next move</h3>
-        <p>Reads your own results, not generic advice, and tells Super Agent what's actually worth doing next.</p>
+        <span class="tag" data-i18n="spec.tag3">Growth Analyst</span>
+        <h3 data-i18n="spec.t3">Finds the highest-leverage next move</h3>
+        <p data-i18n="spec.b3">Reads your own results, not generic advice, and tells Super Agent what's actually worth doing next.</p>
       </div>
     </div>
   </div>
@@ -554,23 +569,23 @@
 <section class="flow">
   <div class="wrap">
     <div class="flow-head reveal pre">
-      <h2>From here to live — three steps.</h2>
+      <h2 data-i18n="flow.h2">From here to live — three steps.</h2>
     </div>
     <div class="flow-steps">
       <div class="flow-step reveal pre">
         <div class="flow-num">1</div>
-        <h3>Start free</h3>
-        <p>Save a card, nothing charged today. Your 7 free days start now.</p>
+        <h3 data-i18n="flow.t1">Start free</h3>
+        <p data-i18n="flow.b1">Save a card, nothing charged today. Your 7 free days start now.</p>
       </div>
       <div class="flow-step reveal pre">
         <div class="flow-num">2</div>
-        <h3>Two-minute setup</h3>
-        <p>Tell Super Agent about your business — it takes it from there.</p>
+        <h3 data-i18n="flow.t2">Two-minute setup</h3>
+        <p data-i18n="flow.b2">Tell Super Agent about your business — it takes it from there.</p>
       </div>
       <div class="flow-step reveal pre">
         <div class="flow-num">3</div>
-        <h3>Super Agent gets to work</h3>
-        <p>Your link goes live and Super Agent starts immediately — no waiting on you.</p>
+        <h3 data-i18n="flow.t3">Super Agent gets to work</h3>
+        <p data-i18n="flow.b3">Your link goes live and Super Agent starts immediately — no waiting on you.</p>
       </div>
     </div>
   </div>
@@ -578,9 +593,9 @@
 
 <section class="integrations">
   <div class="wrap">
-    <div class="integrations-label">Connects to the tools you already run your business on</div>
+    <div class="integrations-label" data-i18n="integ.label">Connects to the tools you already run your business on</div>
     <div class="integrations-list">
-      <span>Email</span><span>Calendar</span><span>Invoicing</span><span>Slack</span><span>SMS</span><span>Your CRM</span>
+      <span data-i18n="integ.i1">Email</span><span data-i18n="integ.i2">Calendar</span><span data-i18n="integ.i3">Invoicing</span><span>Slack</span><span>SMS</span><span data-i18n="integ.i6">Your CRM</span>
     </div>
   </div>
 </section>
@@ -589,41 +604,41 @@
   <div class="wrap">
     <div class="funnel-card glass reveal pre">
       <div class="funnel-inner">
-        <h2>Start your Super Agent today.</h2>
-        <div class="funnel-price"><span class="amt">$0</span><span class="per">to start &mdash; billed on usage only, starting day 7</span></div>
-        <p class="fine">No membership fee. No minimum. If your Super Agent sits unused, you're not charged for it — you only ever pay for the real work it actually does, billed weekly.</p>
+        <h2 data-i18n="funnel.h2">Start your Super Agent today.</h2>
+        <div class="funnel-price"><span class="amt">$0</span><span class="per" data-i18n="funnel.per">to start &mdash; billed on usage only, starting day 7</span></div>
+        <p class="fine" data-i18n="funnel.fine">No membership fee. No minimum. If your Super Agent sits unused, you're not charged for it — you only ever pay for the real work it actually does, billed weekly.</p>
         <ul class="funnel-list">
-          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Live chat, marketing, and lead follow-up from day one</li>
-          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Nothing billed for your first 7 days</li>
-          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Cancel any time, no long-term contract</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="funnel.li1">Live chat, marketing, and lead follow-up from day one</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="funnel.li2">Nothing billed for your first 7 days</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="funnel.li3">Cancel any time, no long-term contract</span></li>
         </ul>
 
         <div class="funnel-cta-row">
-          <button class="btn-primary" id="reveal-signup" onclick="revealSignup()">Start your Super Agent — free</button>
+          <button class="btn-primary" id="reveal-signup" onclick="revealSignup()" data-i18n="funnel.reveal">Start your Super Agent — free</button>
         </div>
 
         <div class="signup hidden" id="signup-panel">
           <div class="signup-row">
             <div class="field">
-              <label for="su-business">Business name</label>
-              <input id="su-business" type="text" autocomplete="organization" placeholder="e.g. My Business Name" required>
+              <label for="su-business" data-i18n="funnel.bizLabel">Business name</label>
+              <input id="su-business" type="text" autocomplete="organization" placeholder="e.g. My Business Name" required data-i18n-placeholder="funnel.bizPh">
             </div>
             <div class="field">
-              <label for="su-email">Email</label>
+              <label for="su-email" data-i18n="funnel.emailLabel">Email</label>
               <input id="su-email" type="email" autocomplete="email" placeholder="you@yourbusiness.com" required>
             </div>
           </div>
           <div class="signup-actions">
             <button class="btn-primary" id="checkout-btn" onclick="startCheckout()">
-              <span class="btn-label">Continue to secure checkout</span>
+              <span class="btn-label" data-i18n="funnel.checkout">Continue to secure checkout</span>
               <span class="spinner"><i></i></span>
             </button>
             <span class="lock-note">
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2.5" y="5.5" width="8" height="6" rx="1.2" stroke="currentColor"/><path d="M4.2 5.5V3.8a2.3 2.3 0 0 1 4.6 0V5.5" stroke="currentColor"/></svg>
-              Secured by Stripe
+              <span data-i18n="funnel.secured">Secured by Stripe</span>
             </span>
           </div>
-          <div class="signup-error" id="signup-error">Something went wrong starting checkout — try again in a moment.</div>
+          <div class="signup-error" id="signup-error" data-i18n="funnel.error">Something went wrong starting checkout — try again in a moment.</div>
         </div>
       </div>
     </div>
@@ -632,12 +647,12 @@
 
 <section class="final-cta">
   <div class="wrap">
-    <h2>Ready for it to start working?</h2>
-    <p>Your Super Agent can be live in the next few minutes.</p>
+    <h2 data-i18n="final.h2">Ready for it to start working?</h2>
+    <p data-i18n="final.sub">Your Super Agent can be live in the next few minutes.</p>
     <div class="hero-ctas">
-      <button class="btn-primary" onclick="scrollToSignup()">Start your Super Agent — free</button>
+      <button class="btn-primary" onclick="scrollToSignup()" data-i18n="hero.ctaPrimary">Start your Super Agent — free</button>
     </div>
-    <div class="final-fine">Cancel anytime. Your business, your data, your rules.</div>
+    <div class="final-fine" data-i18n="final.fine">Cancel anytime. Your business, your data, your rules.</div>
   </div>
 </section>
 
@@ -646,26 +661,26 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="brand"><span class="brand-mark"></span>Super Agent</div>
-        <p>An AI employee for local service businesses — marketing, lead follow-up, and busywork, handled.</p>
+        <p data-i18n="footer.tagline">An AI employee for local service businesses — marketing, lead follow-up, and busywork, handled.</p>
       </div>
       <div class="footer-col">
-        <h4>Product</h4>
-        <a href="#what">What it does</a>
-        <a href="#specialists">Specialists</a>
-        <a href="#signup-section">Pricing</a>
+        <h4 data-i18n="footer.product">Product</h4>
+        <a href="#what" data-i18n="nav.what">What it does</a>
+        <a href="#specialists" data-i18n="nav.specialists">Specialists</a>
+        <a href="#signup-section" data-i18n="nav.pricing">Pricing</a>
       </div>
       <div class="footer-col">
-        <h4>Company</h4>
-        <a href="mailto:support@havenhomesdesignbuild.com">Contact</a>
+        <h4 data-i18n="footer.company">Company</h4>
+        <a href="mailto:support@havenhomesdesignbuild.com" data-i18n="footer.contact">Contact</a>
       </div>
       <div class="footer-col">
-        <h4>Support</h4>
+        <h4 data-i18n="footer.support">Support</h4>
         <span>support@havenhomesdesignbuild.com</span>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>&copy; <span id="year"></span> Super Agent. All rights reserved.</span>
-      <span>Billed weekly on usage &middot; secured by Stripe</span>
+      <span>&copy; <span id="year"></span> <span data-i18n="footer.rights">Super Agent. All rights reserved.</span></span>
+      <span data-i18n="footer.billed">Billed weekly on usage &middot; secured by Stripe</span>
     </div>
   </div>
 </footer>
@@ -676,53 +691,53 @@
 <div id="state-onboard" class="state">
   <div class="onboard-shell">
     <div class="onboard-card wrap" style="padding:0;">
-      <div class="step-badge">Step 2 of 3 — you're verified, almost live</div>
-      <h1>Tell Super Agent about your business.</h1>
-      <p>Two minutes, then Super Agent takes it from here — this is the last thing you need to do before it goes live.</p>
+      <div class="step-badge" data-i18n="ob.step">Step 2 of 3 — you're verified, almost live</div>
+      <h1 data-i18n="ob.h1">Tell Super Agent about your business.</h1>
+      <p data-i18n="ob.sub">Two minutes, then Super Agent takes it from here — this is the last thing you need to do before it goes live.</p>
 
       <form class="onboard-form" id="onboard-form" onsubmit="return submitOnboarding(event)">
         <div class="onboard-grid">
           <div class="field">
-            <label for="ob-business">Business name</label>
+            <label for="ob-business" data-i18n="ob.bizLabel">Business name</label>
             <input id="ob-business" required>
           </div>
           <div class="field">
-            <label for="ob-contact">Your name</label>
+            <label for="ob-contact" data-i18n="ob.nameLabel">Your name</label>
             <input id="ob-contact" required>
           </div>
         </div>
         <div class="onboard-grid">
           <div class="field">
-            <label for="ob-email">Email</label>
+            <label for="ob-email" data-i18n="ob.emailLabel">Email</label>
             <input id="ob-email" type="email" required>
           </div>
           <div class="field">
-            <label for="ob-phone">Phone <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
+            <label for="ob-phone" data-i18n-html="ob.phoneLabel">Phone <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
             <input id="ob-phone" type="tel">
           </div>
         </div>
         <div class="onboard-grid">
           <div class="field">
-            <label for="ob-agent">What should your Super Agent be called?</label>
+            <label for="ob-agent" data-i18n="ob.agentLabel">What should your Super Agent be called?</label>
             <input id="ob-agent" placeholder="Super Agent" value="Super Agent">
           </div>
           <div class="field">
-            <label for="ob-wake">Wake word <span style="color:var(--faint);font-weight:400;">(voice mode)</span></label>
+            <label for="ob-wake" data-i18n-html="ob.wakeLabel">Wake word <span style="color:var(--faint);font-weight:400;">(voice mode)</span></label>
             <input id="ob-wake" placeholder="Hey Super Agent" value="Hey Super Agent">
           </div>
         </div>
         <div class="field">
-          <label for="ob-blurb">What does your business do, and where should Super Agent focus first?</label>
-          <textarea id="ob-blurb" placeholder="e.g. Residential kitchen &amp; bath remodels in the Denver area. Biggest need right now is faster follow-up on estimate requests." required></textarea>
+          <label for="ob-blurb" data-i18n="ob.blurbLabel">What does your business do, and where should Super Agent focus first?</label>
+          <textarea id="ob-blurb" placeholder="e.g. Residential kitchen &amp; bath remodels in the Denver area. Biggest need right now is faster follow-up on estimate requests." required data-i18n-placeholder="ob.blurbPh"></textarea>
         </div>
 
         <div class="onboard-marketing">
           <div class="onboard-marketing-head">
-            <h3>Marketing &amp; social</h3>
-            <p>Super Agent starts working on your marketing from day one — this is what it needs to get going immediately.</p>
+            <h3 data-i18n="ob.mktH">Marketing &amp; social</h3>
+            <p data-i18n="ob.mktSub">Super Agent starts working on your marketing from day one — this is what it needs to get going immediately.</p>
           </div>
           <div class="field">
-            <label>Where's your business active online? <span style="color:var(--faint);font-weight:400;">(check all that apply)</span></label>
+            <label data-i18n-html="ob.platformsLabel">Where's your business active online? <span style="color:var(--faint);font-weight:400;">(check all that apply)</span></label>
             <div class="checkbox-grid">
               <label class="checkbox-row"><input type="checkbox" class="ob-platform" value="Facebook">Facebook</label>
               <label class="checkbox-row"><input type="checkbox" class="ob-platform" value="Instagram">Instagram</label>
@@ -733,48 +748,48 @@
             </div>
           </div>
           <div class="field">
-            <label for="ob-handles">Page links or handles for those <span style="color:var(--faint);font-weight:400;">(optional, paste what you have)</span></label>
+            <label for="ob-handles" data-i18n-html="ob.handlesLabel">Page links or handles for those <span style="color:var(--faint);font-weight:400;">(optional, paste what you have)</span></label>
             <input id="ob-handles" placeholder="e.g. facebook.com/havenhomes, @havenhomes_build">
           </div>
           <div class="onboard-grid">
             <div class="field">
-              <label for="ob-goal">Biggest marketing goal right now</label>
+              <label for="ob-goal" data-i18n="ob.goalLabel">Biggest marketing goal right now</label>
               <select id="ob-goal">
-                <option value="More leads">More leads</option>
-                <option value="More reviews">More reviews</option>
-                <option value="Brand awareness">Brand awareness</option>
-                <option value="Fill a slow season">Fill a slow season</option>
-                <option value="Not sure yet">Not sure yet — Super Agent can figure it out</option>
+                <option value="More leads" data-i18n="ob.goal1">More leads</option>
+                <option value="More reviews" data-i18n="ob.goal2">More reviews</option>
+                <option value="Brand awareness" data-i18n="ob.goal3">Brand awareness</option>
+                <option value="Fill a slow season" data-i18n="ob.goal4">Fill a slow season</option>
+                <option value="Not sure yet" data-i18n="ob.goal5">Not sure yet — Super Agent can figure it out</option>
               </select>
             </div>
             <div class="field">
-              <label for="ob-budget">Monthly ad budget <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
+              <label for="ob-budget" data-i18n-html="ob.budgetLabel">Monthly ad budget <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
               <input id="ob-budget" type="text" inputmode="decimal" placeholder="e.g. $300">
             </div>
           </div>
           <label class="checkbox-row">
             <input type="checkbox" id="ob-social">
-            Also want help managing paid ad spend directly? (add-on)
+            <span data-i18n="ob.adSpend">Also want help managing paid ad spend directly? (add-on)</span>
           </label>
-          <p class="onboard-marketing-note">You don't hand over any passwords here. Once you're live, Super Agent walks you through securely connecting each account it needs posting access to — same as it does for email, calendar, and invoicing.</p>
+          <p class="onboard-marketing-note" data-i18n="ob.mktNote">You don't hand over any passwords here. Once you're live, Super Agent walks you through securely connecting each account it needs posting access to — same as it does for email, calendar, and invoicing.</p>
         </div>
 
         <div class="field">
-          <label for="ob-personality">How should Super Agent sound?</label>
+          <label for="ob-personality" data-i18n="ob.personalityLabel">How should Super Agent sound?</label>
           <select id="ob-personality">
-            <option value="1">Warm &amp; professional (default)</option>
-            <option value="2">Upbeat &amp; casual</option>
-            <option value="3">Direct &amp; efficient</option>
+            <option value="1" data-i18n="ob.pers1">Warm &amp; professional (default)</option>
+            <option value="2" data-i18n="ob.pers2">Upbeat &amp; casual</option>
+            <option value="3" data-i18n="ob.pers3">Direct &amp; efficient</option>
           </select>
         </div>
 
         <div class="signup-actions" style="margin-top:8px; justify-content:flex-start;">
           <button class="btn-primary" id="onboard-submit-btn" type="submit">
-            <span class="btn-label">Finish setup</span>
+            <span class="btn-label" data-i18n="ob.finish">Finish setup</span>
             <span class="spinner"><i></i></span>
           </button>
         </div>
-        <div class="signup-error" id="onboard-error" style="text-align:left;">Something went wrong submitting this — try again, or email support@havenhomesdesignbuild.com and we'll finish it manually.</div>
+        <div class="signup-error" id="onboard-error" style="text-align:left;" data-i18n="ob.error">Something went wrong submitting this — try again, or email support@havenhomesdesignbuild.com and we'll finish it manually.</div>
       </form>
     </div>
   </div>
@@ -787,22 +802,22 @@
       <div class="done-icon">
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M6 13.5L11 18.5L20 8" stroke="#8fa4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div class="step-badge">Step 3 of 3 — setup complete</div>
-      <h1>You're all set. Super Agent's getting ready.</h1>
-      <p>Your own private Super Agent is being built right now — that usually takes 5&ndash;15 minutes, since it's a real, dedicated instance, not a shared bot.</p>
+      <div class="step-badge" data-i18n="done.step">Step 3 of 3 — setup complete</div>
+      <h1 data-i18n="done.h1">You're all set. Super Agent's getting ready.</h1>
+      <p data-i18n="done.sub">Your own private Super Agent is being built right now — that usually takes 5&ndash;15 minutes, since it's a real, dedicated instance, not a shared bot.</p>
 
       <div class="done-steps">
         <div class="done-step">
           <div class="n">&rarr;</div>
-          <div><strong>We'll email you the moment it's live.</strong><p>Your access link goes to the email you gave us — check spam if it's been a while.</p></div>
+          <div><strong data-i18n="done.s1t">We'll email you the moment it's live.</strong><p data-i18n="done.s1b">Your access link goes to the email you gave us — check spam if it's been a while.</p></div>
         </div>
         <div class="done-step">
           <div class="n">&rarr;</div>
-          <div><strong>Open the link and you're straight in.</strong><p>No further setup — Super Agent already knows about your business from what you just told it, and gets to work immediately.</p></div>
+          <div><strong data-i18n="done.s2t">Open the link and you're straight in.</strong><p data-i18n="done.s2b">No further setup — Super Agent already knows about your business from what you just told it, and gets to work immediately.</p></div>
         </div>
         <div class="done-step">
           <div class="n">&rarr;</div>
-          <div><strong>Nothing's billed until day 7.</strong><p>And even then, only for what Super Agent actually does — see you on the inside.</p></div>
+          <div><strong data-i18n="done.s3t">Nothing's billed until day 7.</strong><p data-i18n="done.s3b">And even then, only for what Super Agent actually does — see you on the inside.</p></div>
         </div>
       </div>
     </div>
@@ -811,6 +826,180 @@
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------------- language toggle (EN / ES) — translates the whole page ---------------- */
+const I18N = {
+  en: {
+    __title: "Super Agent — Your business, working while you're not",
+    __desc: "Super Agent is an AI employee that markets, follows up on leads, and runs the busywork of your business — 24/7. Start free. Pay only for what it actually uses.",
+    'nav.demo':'Try live demo', 'nav.what':'What it does', 'nav.video':'See it work', 'nav.specialists':'Specialists', 'nav.pricing':'Pricing', 'nav.cta':'Start free',
+    'hero.kicker':'Live in minutes &middot; no contract',
+    'hero.h1':"Your business, <em>working</em> while you're not.",
+    'hero.lede':'Super Agent is an AI employee — not a chatbot. It runs your marketing, follows up on every lead, and handles the busywork, around the clock, from day one.',
+    'hero.ctaPrimary':'Start your Super Agent — free', 'hero.ctaGhost':'Try it live — no signup', 'hero.fine':'No cost to start. You only pay for what it uses, after day 7.',
+    'triad.h2':'Three things it never stops doing.',
+    'triad.num1':'01 &middot; Your leads', 'triad.h1title':'Talks to them before you even see them.', 'triad.h1body':'Every inbound message gets a real reply — qualifying questions, pricing, next steps — the moment it arrives.',
+    'triad.num2':'02 &middot; Your marketing', 'triad.h2title':'Runs without waiting to be asked.', 'triad.h2body':'Ad copy, social posts, promo emails — drafted and shipped on its own schedule, not just when you remember to ask.',
+    'triad.num3':'03 &middot; Your business', 'triad.h3title':'Learns it once, keeps it forever.', 'triad.h3body':'A short interview up front — services, pricing, tone — carried into every conversation and every piece of work after.',
+    'spot.r1title':'Real conversations, not canned replies.', 'spot.r1body':'Super Agent reads the situation and responds like someone who actually works there — because as far as your customers know, it does.',
+    'spot.c1':'Hey, do you do same-week estimates?', 'spot.c2':"Yes — I can get someone out Thursday. What's the address, and is this a repair or a full install?",
+    'spot.c3':'Repair, kitchen sink', 'spot.c4':"Got it, I've queued Thursday 10&ndash;12 and texted the details to the team.",
+    'spot.r2title':"Idle isn't idle.", 'spot.r2body':"When there's nothing waiting on it, Super Agent doesn't sit still — it's out improving your next campaign, on its own initiative.",
+    'spot.c5':'Posted this week\'s promo to Facebook &amp; drafted 3 ad variants for review &mdash; the "same-day service" angle tested best last month, led with that one.',
+    'cap.h2':'Everything it actually does.', 'cap.sub':"Not a chatbot with a script — a real employee. Here's what's running the moment it's live.",
+    'cap.i1t':'Answers every lead, instantly', 'cap.i1b':'Texts, chats, and calls get a real reply — qualifying, pricing, next steps — the moment they arrive, day or night.',
+    'cap.i2t':'Books and follows up', 'cap.i2b':'Schedules estimates, sends reminders, and chases quiet leads without being told to.',
+    'cap.i3t':'Runs your marketing', 'cap.i3b':"Social posts, promo emails, and ad copy — drafted and shipped on its own schedule, tested against what's worked before.",
+    'cap.i4t':'Builds and manages ad campaigns', 'cap.i4b':'Writes the creative, picks the angle, and can manage a budget you set for paid social and search.',
+    'cap.i5t':'Handles quotes and invoicing', 'cap.i5b':'Drafts quotes from your pricing, sends invoices, and follows up on anything unpaid.',
+    'cap.i6t':'Remembers your business', 'cap.i6b':'Learns your services, pricing, and tone once — carries it into every conversation after.',
+    'cap.i7t':'Responds to reviews', 'cap.i7b':'Replies to Google and Facebook reviews in your voice — thanks the good ones, defuses the bad ones.',
+    'cap.i8t':'Speaks any language', 'cap.i8b':'Picks a language preference with every new client and works in it from the first message on.',
+    'cap.i9t':'Never actually stops', 'cap.i9b':"No lead waiting, no task queued — it works on your next campaign on its own, so the value shows up even between conversations.",
+    'video.h2':'See Super Agent, in two minutes.', 'video.sub':"What it is, what it does on day one, and what changes once it's running your busywork.", 'video.label':'2:14 — What Super Agent is',
+    'spec.h2':"It doesn't work alone.", 'spec.sub':'Super Agent can call in its own specialists for the heavier jobs — several running at once, instead of one thing at a time.',
+    'spec.tag1':'Marketing Writer', 'spec.t1':'Drafts ad copy, posts, and emails', 'spec.b1':'Turns out several variants in parallel — three ad angles, or a post plus an email plus a text blast — all at once.',
+    'spec.tag2':'Lead Researcher', 'spec.t2':'Qualifies prospects before you call', 'spec.b2':'Researches a lead or a segment, and comes back with the fit — and a real opening line — not just a name and a number.',
+    'spec.tag3':'Growth Analyst', 'spec.t3':'Finds the highest-leverage next move', 'spec.b3':"Reads your own results, not generic advice, and tells Super Agent what's actually worth doing next.",
+    'flow.h2':'From here to live — three steps.',
+    'flow.t1':'Start free', 'flow.b1':'Save a card, nothing charged today. Your 7 free days start now.',
+    'flow.t2':'Two-minute setup', 'flow.b2':'Tell Super Agent about your business — it takes it from there.',
+    'flow.t3':'Super Agent gets to work', 'flow.b3':'Your link goes live and Super Agent starts immediately — no waiting on you.',
+    'integ.label':'Connects to the tools you already run your business on', 'integ.i1':'Email', 'integ.i2':'Calendar', 'integ.i3':'Invoicing', 'integ.i6':'Your CRM',
+    'funnel.h2':'Start your Super Agent today.', 'funnel.per':'to start &mdash; billed on usage only, starting day 7',
+    'funnel.fine':"No membership fee. No minimum. If your Super Agent sits unused, you're not charged for it — you only ever pay for the real work it actually does, billed weekly.",
+    'funnel.li1':'Live chat, marketing, and lead follow-up from day one', 'funnel.li2':'Nothing billed for your first 7 days', 'funnel.li3':'Cancel any time, no long-term contract',
+    'funnel.reveal':'Start your Super Agent — free', 'funnel.bizLabel':'Business name', 'funnel.bizPh':'e.g. My Business Name', 'funnel.emailLabel':'Email',
+    'funnel.checkout':'Continue to secure checkout', 'funnel.secured':'Secured by Stripe', 'funnel.error':'Something went wrong starting checkout — try again in a moment.',
+    'final.h2':'Ready for it to start working?', 'final.sub':'Your Super Agent can be live in the next few minutes.', 'final.fine':'Cancel anytime. Your business, your data, your rules.',
+    'footer.tagline':'An AI employee for local service businesses — marketing, lead follow-up, and busywork, handled.',
+    'footer.product':'Product', 'footer.company':'Company', 'footer.support':'Support', 'footer.contact':'Contact',
+    'footer.rights':'Super Agent. All rights reserved.', 'footer.billed':'Billed weekly on usage &middot; secured by Stripe',
+    'ob.step':"Step 2 of 3 — you're verified, almost live", 'ob.h1':'Tell Super Agent about your business.',
+    'ob.sub':'Two minutes, then Super Agent takes it from here — this is the last thing you need to do before it goes live.',
+    'ob.bizLabel':'Business name', 'ob.nameLabel':'Your name', 'ob.emailLabel':'Email',
+    'ob.phoneLabel':'Phone <span style="color:var(--faint);font-weight:400;">(optional)</span>',
+    'ob.agentLabel':'What should your Super Agent be called?', 'ob.wakeLabel':'Wake word <span style="color:var(--faint);font-weight:400;">(voice mode)</span>',
+    'ob.blurbLabel':'What does your business do, and where should Super Agent focus first?',
+    'ob.blurbPh':'e.g. Residential kitchen & bath remodels in the Denver area. Biggest need right now is faster follow-up on estimate requests.',
+    'ob.mktH':'Marketing &amp; social', 'ob.mktSub':'Super Agent starts working on your marketing from day one — this is what it needs to get going immediately.',
+    'ob.platformsLabel':"Where's your business active online? <span style=\"color:var(--faint);font-weight:400;\">(check all that apply)</span>",
+    'ob.handlesLabel':'Page links or handles for those <span style="color:var(--faint);font-weight:400;">(optional, paste what you have)</span>',
+    'ob.goalLabel':'Biggest marketing goal right now', 'ob.goal1':'More leads', 'ob.goal2':'More reviews', 'ob.goal3':'Brand awareness', 'ob.goal4':'Fill a slow season', 'ob.goal5':'Not sure yet — Super Agent can figure it out',
+    'ob.budgetLabel':'Monthly ad budget <span style="color:var(--faint);font-weight:400;">(optional)</span>',
+    'ob.adSpend':'Also want help managing paid ad spend directly? (add-on)',
+    'ob.mktNote':"You don't hand over any passwords here. Once you're live, Super Agent walks you through securely connecting each account it needs posting access to — same as it does for email, calendar, and invoicing.",
+    'ob.personalityLabel':'How should Super Agent sound?', 'ob.pers1':'Warm &amp; professional (default)', 'ob.pers2':'Upbeat &amp; casual', 'ob.pers3':'Direct &amp; efficient',
+    'ob.finish':'Finish setup', 'ob.error':"Something went wrong submitting this — try again, or email support@havenhomesdesignbuild.com and we'll finish it manually.",
+    'done.step':'Step 3 of 3 — setup complete', 'done.h1':"You're all set. Super Agent's getting ready.",
+    'done.sub':"Your own private Super Agent is being built right now — that usually takes 5&ndash;15 minutes, since it's a real, dedicated instance, not a shared bot.",
+    'done.s1t':"We'll email you the moment it's live.", 'done.s1b':"Your access link goes to the email you gave us — check spam if it's been a while.",
+    'done.s2t':"Open the link and you're straight in.", 'done.s2b':'No further setup — Super Agent already knows about your business from what you just told it, and gets to work immediately.',
+    'done.s3t':"Nothing's billed until day 7.", 'done.s3b':'And even then, only for what Super Agent actually does — see you on the inside.',
+  },
+  es: {
+    __title: 'Super Agent — Tu negocio, trabajando aunque tú no estés',
+    __desc: 'Super Agent es un empleado de IA que hace marketing, da seguimiento a clientes potenciales y gestiona el trabajo operativo de tu negocio — 24/7. Empieza gratis. Paga solo por lo que realmente usa.',
+    'nav.demo':'Ver demo en vivo', 'nav.what':'Qué hace', 'nav.video':'Míralo en acción', 'nav.specialists':'Especialistas', 'nav.pricing':'Precios', 'nav.cta':'Empezar gratis',
+    'hero.kicker':'Listo en minutos &middot; sin contrato',
+    'hero.h1':'Tu negocio, <em>trabajando</em> aunque tú no estés.',
+    'hero.lede':'Super Agent es un empleado de IA — no un chatbot. Se encarga de tu marketing, da seguimiento a cada cliente potencial y maneja el trabajo operativo, las 24 horas, desde el primer día.',
+    'hero.ctaPrimary':'Activa tu Super Agent — gratis', 'hero.ctaGhost':'Pruébalo en vivo — sin registro', 'hero.fine':'Sin costo para empezar. Solo pagas por lo que usa, después del día 7.',
+    'triad.h2':'Tres cosas que nunca deja de hacer.',
+    'triad.num1':'01 &middot; Tus clientes', 'triad.h1title':'Les habla antes de que tú los veas.', 'triad.h1body':'Cada mensaje entrante recibe una respuesta real — preguntas de calificación, precios, próximos pasos — en el momento en que llega.',
+    'triad.num2':'02 &middot; Tu marketing', 'triad.h2title':'Funciona sin que se lo pidas.', 'triad.h2body':'Anuncios, publicaciones, correos promocionales — redactados y publicados según su propio calendario, no solo cuando te acuerdas de pedirlo.',
+    'triad.num3':'03 &middot; Tu negocio', 'triad.h3title':'Lo aprende una vez, lo recuerda para siempre.', 'triad.h3body':'Una breve entrevista al inicio — servicios, precios, tono — se aplica en cada conversación y cada tarea después.',
+    'spot.r1title':'Conversaciones reales, no respuestas de guion.', 'spot.r1body':'Super Agent lee la situación y responde como alguien que realmente trabaja ahí — porque, hasta donde saben tus clientes, así es.',
+    'spot.c1':'Hola, ¿hacen cotizaciones la misma semana?', 'spot.c2':'Sí — puedo enviar a alguien el jueves. ¿Cuál es la dirección, y es una reparación o instalación completa?',
+    'spot.c3':'Reparación, fregadero de cocina', 'spot.c4':'Listo, reservé el jueves de 10 a 12 y le envié los detalles al equipo por mensaje.',
+    'spot.r2title':'El tiempo libre no es tiempo perdido.', 'spot.r2body':'Cuando no hay nada pendiente, Super Agent no se queda quieto — está mejorando tu próxima campaña, por iniciativa propia.',
+    'spot.c5':'Publiqué la promoción de esta semana en Facebook y redacté 3 variantes de anuncio para revisar — el enfoque de "servicio el mismo día" fue el que mejor funcionó el mes pasado, así que empecé con ese.',
+    'cap.h2':'Todo lo que realmente hace.', 'cap.sub':'No es un chatbot con guion — es un empleado real. Esto es lo que funciona desde el momento en que se activa.',
+    'cap.i1t':'Responde cada cliente al instante', 'cap.i1b':'Mensajes de texto, chats y llamadas reciben una respuesta real — calificación, precios, próximos pasos — apenas llegan, de día o de noche.',
+    'cap.i2t':'Agenda citas y da seguimiento', 'cap.i2b':'Programa cotizaciones, envía recordatorios y persigue a los clientes callados sin que se lo pidas.',
+    'cap.i3t':'Se encarga de tu marketing', 'cap.i3b':'Publicaciones, correos promocionales y anuncios — redactados y publicados según su propio calendario, probados contra lo que ya ha funcionado.',
+    'cap.i4t':'Crea y gestiona campañas publicitarias', 'cap.i4b':'Escribe el contenido creativo, elige el enfoque, y puede administrar un presupuesto que tú definas para redes y búsqueda.',
+    'cap.i5t':'Gestiona cotizaciones y facturación', 'cap.i5b':'Redacta cotizaciones con tus precios, envía facturas y da seguimiento a lo que no se ha pagado.',
+    'cap.i6t':'Recuerda tu negocio', 'cap.i6b':'Aprende tus servicios, precios y tono una vez — lo aplica en cada conversación después.',
+    'cap.i7t':'Responde reseñas', 'cap.i7b':'Responde reseñas de Google y Facebook con tu propio tono — agradece las buenas, calma las malas.',
+    'cap.i8t':'Habla cualquier idioma', 'cap.i8b':'Elige un idioma preferido con cada cliente nuevo y trabaja en ese idioma desde el primer mensaje.',
+    'cap.i9t':'Nunca se detiene de verdad', 'cap.i9b':'Sin clientes esperando, sin tareas pendientes — trabaja en tu próxima campaña por su cuenta, así que el valor se nota incluso entre conversaciones.',
+    'video.h2':'Conoce a Super Agent en dos minutos.', 'video.sub':'Qué es, qué hace desde el primer día, y qué cambia una vez que se encarga de tu trabajo operativo.', 'video.label':'2:14 — Qué es Super Agent',
+    'spec.h2':'No trabaja solo.', 'spec.sub':'Super Agent puede llamar a sus propios especialistas para las tareas más pesadas — varios funcionando a la vez, en lugar de uno a la vez.',
+    'spec.tag1':'Redactor de Marketing', 'spec.t1':'Redacta anuncios, publicaciones y correos', 'spec.b1':'Genera varias variantes en paralelo — tres enfoques de anuncio, o una publicación más un correo más un mensaje de texto — todo a la vez.',
+    'spec.tag2':'Investigador de Clientes', 'spec.t2':'Califica prospectos antes de que llames', 'spec.b2':'Investiga a un cliente potencial o un segmento, y regresa con el ajuste — y una frase de apertura real — no solo un nombre y un número.',
+    'spec.tag3':'Analista de Crecimiento', 'spec.t3':'Encuentra el próximo paso de mayor impacto', 'spec.b3':'Analiza tus propios resultados, no consejos genéricos, y le dice a Super Agent qué vale la pena hacer a continuación.',
+    'flow.h2':'De aquí a estar en vivo — tres pasos.',
+    'flow.t1':'Empieza gratis', 'flow.b1':'Guarda una tarjeta, no se cobra nada hoy. Tus 7 días gratis empiezan ahora.',
+    'flow.t2':'Configuración de dos minutos', 'flow.b2':'Cuéntale a Super Agent sobre tu negocio — él se encarga del resto.',
+    'flow.t3':'Super Agent se pone a trabajar', 'flow.b3':'Tu enlace se activa y Super Agent empieza de inmediato — sin que tengas que hacer nada más.',
+    'integ.label':'Se conecta con las herramientas que ya usas en tu negocio', 'integ.i1':'Correo', 'integ.i2':'Calendario', 'integ.i3':'Facturación', 'integ.i6':'Tu CRM',
+    'funnel.h2':'Activa tu Super Agent hoy.', 'funnel.per':'para empezar &mdash; facturado solo por uso, a partir del día 7',
+    'funnel.fine':'Sin cuota de membresía. Sin mínimo. Si tu Super Agent no se usa, no se te cobra — solo pagas por el trabajo real que hace, facturado semanalmente.',
+    'funnel.li1':'Chat en vivo, marketing y seguimiento de clientes desde el primer día', 'funnel.li2':'Nada se cobra durante tus primeros 7 días', 'funnel.li3':'Cancela cuando quieras, sin contrato a largo plazo',
+    'funnel.reveal':'Activa tu Super Agent — gratis', 'funnel.bizLabel':'Nombre del negocio', 'funnel.bizPh':'ej. Nombre de Mi Negocio', 'funnel.emailLabel':'Correo electrónico',
+    'funnel.checkout':'Continuar al pago seguro', 'funnel.secured':'Protegido por Stripe', 'funnel.error':'Algo salió mal al iniciar el pago — intenta de nuevo en un momento.',
+    'final.h2':'¿Listo para que empiece a trabajar?', 'final.sub':'Tu Super Agent puede estar en vivo en los próximos minutos.', 'final.fine':'Cancela cuando quieras. Tu negocio, tus datos, tus reglas.',
+    'footer.tagline':'Un empleado de IA para negocios de servicios locales — marketing, seguimiento de clientes y trabajo operativo, resuelto.',
+    'footer.product':'Producto', 'footer.company':'Empresa', 'footer.support':'Soporte', 'footer.contact':'Contacto',
+    'footer.rights':'Super Agent. Todos los derechos reservados.', 'footer.billed':'Facturado semanalmente por uso &middot; protegido por Stripe',
+    'ob.step':'Paso 2 de 3 — ya estás verificado, casi listo', 'ob.h1':'Cuéntale a Super Agent sobre tu negocio.',
+    'ob.sub':'Dos minutos, y Super Agent se encarga del resto — esto es lo último que necesitas hacer antes de activarlo.',
+    'ob.bizLabel':'Nombre del negocio', 'ob.nameLabel':'Tu nombre', 'ob.emailLabel':'Correo electrónico',
+    'ob.phoneLabel':'Teléfono <span style="color:var(--faint);font-weight:400;">(opcional)</span>',
+    'ob.agentLabel':'¿Cómo debería llamarse tu Super Agent?', 'ob.wakeLabel':'Palabra de activación <span style="color:var(--faint);font-weight:400;">(modo de voz)</span>',
+    'ob.blurbLabel':'¿A qué se dedica tu negocio, y en qué debería enfocarse primero Super Agent?',
+    'ob.blurbPh':'ej. Remodelaciones de cocina y baño residenciales en el área de Denver. La necesidad más urgente ahora mismo es un seguimiento más rápido a las solicitudes de cotización.',
+    'ob.mktH':'Marketing y redes sociales', 'ob.mktSub':'Super Agent empieza a trabajar en tu marketing desde el primer día — esto es lo que necesita para arrancar de inmediato.',
+    'ob.platformsLabel':'¿Dónde tiene presencia tu negocio en línea? <span style="color:var(--faint);font-weight:400;">(marca todas las que apliquen)</span>',
+    'ob.handlesLabel':'Enlaces o usuarios de esas páginas <span style="color:var(--faint);font-weight:400;">(opcional, pega lo que tengas)</span>',
+    'ob.goalLabel':'Tu mayor objetivo de marketing en este momento', 'ob.goal1':'Más clientes potenciales', 'ob.goal2':'Más reseñas', 'ob.goal3':'Reconocimiento de marca', 'ob.goal4':'Llenar una temporada baja', 'ob.goal5':'Aún no lo sé — Super Agent puede resolverlo',
+    'ob.budgetLabel':'Presupuesto publicitario mensual <span style="color:var(--faint);font-weight:400;">(opcional)</span>',
+    'ob.adSpend':'¿También quieres ayuda administrando directamente el gasto publicitario? (complemento)',
+    'ob.mktNote':'Aquí no entregas ninguna contraseña. Una vez activo, Super Agent te guía para conectar de forma segura cada cuenta a la que necesite acceso — igual que hace con correo, calendario y facturación.',
+    'ob.personalityLabel':'¿Cómo debería sonar Super Agent?', 'ob.pers1':'Cálido y profesional (predeterminado)', 'ob.pers2':'Animado y casual', 'ob.pers3':'Directo y eficiente',
+    'ob.finish':'Terminar configuración', 'ob.error':'Algo salió mal al enviar esto — intenta de nuevo, o escribe a support@havenhomesdesignbuild.com y lo terminaremos manualmente.',
+    'done.step':'Paso 3 de 3 — configuración completa', 'done.h1':'Todo listo. Super Agent se está preparando.',
+    'done.sub':'Tu propio Super Agent privado se está construyendo en este momento — normalmente toma de 5 a 15 minutos, ya que es una instancia real y dedicada, no un bot compartido.',
+    'done.s1t':'Te avisaremos por correo en cuanto esté listo.', 'done.s1b':'Tu enlace de acceso llega al correo que nos diste — revisa spam si ha pasado un rato.',
+    'done.s2t':'Abre el enlace y entras directo.', 'done.s2b':'Sin configuración adicional — Super Agent ya conoce tu negocio por lo que nos contaste, y se pone a trabajar de inmediato.',
+    'done.s3t':'No se cobra nada hasta el día 7.', 'done.s3b':'E incluso entonces, solo por lo que Super Agent realmente hace — nos vemos adentro.',
+  },
+};
+
+let currentLang = localStorage.getItem('superagent_lang') || 'en';
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  localStorage.setItem('superagent_lang', lang);
+  const dict = I18N[lang] || I18N.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    // innerHTML (not textContent) so entities like &middot; / &mdash; in the dictionary decode correctly —
+    // all translated strings are developer-authored static copy, never user input, so this is safe.
+    if (dict[key] != null) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (dict[key] != null) el.innerHTML = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key] != null) el.placeholder = dict[key];
+  });
+  const toggle = document.getElementById('lang-toggle');
+  if (toggle) toggle.setAttribute('data-active', lang);
+  if (dict.__title) document.title = dict.__title;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc && dict.__desc) metaDesc.setAttribute('content', dict.__desc);
+}
+
+const langToggleBtn = document.getElementById('lang-toggle');
+if (langToggleBtn){
+  langToggleBtn.addEventListener('click', () => applyLang(currentLang === 'en' ? 'es' : 'en'));
+}
+applyLang(currentLang);
 
 /* ---------------- config ---------------- */
 const FN_BASE = 'https://us-central1-money-masteries-2cc76.cloudfunctions.net';
@@ -1395,6 +1584,62 @@ async function submitOnboarding(e){
       ctx.beginPath(); ctx.arc(px, py, cr, 0, Math.PI*2); ctx.fill();
     }
     ctx.globalCompositeOperation = 'source-over';
+
+    // ---- liquid fill line & rising bubbles — reads as an actual fluid sphere, not just a glass shell.
+    // The meniscus tilts and sloshes gently with pointer movement, like liquid settling in a tilted globe.
+    const waveT = reduced ? 0 : t*0.06;
+    const slosh = tiltY * 0.12 + (reduced ? 0 : Math.sin(t*0.023)*0.03);
+    const liquidLevel = 0.1 + slosh;
+    ctx.save();
+    const segs = 22;
+    ctx.beginPath();
+    ctx.moveTo(cx - r, cy + r*liquidLevel);
+    for (let i = 0; i <= segs; i++){
+      const px = cx - r + (i/segs)*r*2;
+      const wobble = (reduced ? 0 : Math.sin(i*0.9 + waveT)*r*0.018 + Math.sin(i*0.4 + waveT*1.7)*r*0.01);
+      ctx.lineTo(px, cy + r*liquidLevel + wobble);
+    }
+    ctx.lineTo(cx + r, cy + r*1.3);
+    ctx.lineTo(cx - r, cy + r*1.3);
+    ctx.closePath();
+    const liquidFill = ctx.createLinearGradient(0, cy + r*liquidLevel, 0, cy + r);
+    liquidFill.addColorStop(0, `rgba(${CYAN},0.16)`);
+    liquidFill.addColorStop(1, `rgba(${VIOLET},0.06)`);
+    ctx.fillStyle = liquidFill;
+    ctx.fill();
+    // bright meniscus line right at the liquid surface, like light catching the waterline
+    ctx.beginPath();
+    for (let i = 0; i <= segs; i++){
+      const px = cx - r + (i/segs)*r*2;
+      const wobble = (reduced ? 0 : Math.sin(i*0.9 + waveT)*r*0.018 + Math.sin(i*0.4 + waveT*1.7)*r*0.01);
+      const py = cy + r*liquidLevel + wobble;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = `rgba(255,255,255,${0.26*flicker})`;
+    ctx.lineWidth = Math.max(0.7, r*0.008);
+    ctx.stroke();
+    ctx.restore();
+
+    // small bubbles rising slowly through the liquid, looping — a tiny detail that only
+    // reads right if the sphere is actually holding a fluid, not just glowing
+    if (!reduced){
+      const liquidTop = cy + r*liquidLevel, liquidBottom = cy + r*0.95;
+      for (let i = 0; i < 6; i++){
+        const seed = i*137.5;
+        const cycle = ((t*0.35 + seed) % 140) / 140;
+        const bx = cx + Math.sin(seed*0.7)*r*0.5 + Math.sin(t*0.01 + seed)*r*0.04;
+        const by = liquidBottom - cycle*(liquidBottom - liquidTop - r*0.05);
+        if (by < liquidTop + r*0.03) continue;
+        const br = r*(0.012 + (i%3)*0.006);
+        const bOpacity = (1 - cycle) * 0.35 * flicker;
+        if (bOpacity <= 0.01) continue;
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(255,255,255,${bOpacity})`;
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+    }
 
     // bright glass specular highlight — the "3D" cue. Tighter, less blown-out than a cartoon
     // shine sticker: a real hard highlight falls off fast and doesn't dominate a large area.
