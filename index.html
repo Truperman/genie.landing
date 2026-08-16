@@ -1243,27 +1243,32 @@ async function submitOnboarding(e){
     tiltY += (tiltTY - tiltY) * 0.06;
     const lightOx = -0.3 + tiltX*0.22, lightOy = -0.34 + tiltY*0.22;
 
+    // soft grounding shadow — cast opposite the key light, low and blurred, the single biggest cue
+    // a studio product photo of a glass/liquid sphere would have that a "glowing icon" never does.
+    ctx.save();
+    ctx.filter = `blur(${Math.max(4, r*0.09)}px)`;
+    const shadowCx = cx - r*lightOx*0.5, shadowCy = cy + r*0.72 - r*lightOy*0.15;
+    const contactShadow = ctx.createRadialGradient(shadowCx, shadowCy, 0, shadowCx, shadowCy, r*0.85);
+    contactShadow.addColorStop(0, 'rgba(0,0,4,0.4)');
+    contactShadow.addColorStop(0.7, 'rgba(0,0,4,0.16)');
+    contactShadow.addColorStop(1, 'rgba(0,0,4,0)');
+    ctx.fillStyle = contactShadow;
+    ctx.beginPath();
+    ctx.ellipse(shadowCx, shadowCy, r*0.85, r*0.24, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.globalCompositeOperation = 'lighter';
 
-    // soft ambient bloom — much lower key than before; a hint of color cast in the air
-    // around the glass rather than a bright cartoon aura. Real glass throws a faint glow,
-    // it doesn't broadcast neon.
+    // soft ambient bloom — very low key, just enough color cast in the air around the glass to sell
+    // a light source, not a glow. Real glass/liquid reflects light, it doesn't emit it.
     const glowA = ctx.createRadialGradient(cx, cy, r*0.3, cx, cy, glowMaxR);
-    glowA.addColorStop(0,    `rgba(${VIOLET},${0.16*flicker})`);
-    glowA.addColorStop(0.35, `rgba(${CYAN},${0.07*flicker})`);
-    glowA.addColorStop(0.65, `rgba(${GOLD},${0.025*flicker})`);
+    glowA.addColorStop(0,    `rgba(${VIOLET},${0.1*flicker})`);
+    glowA.addColorStop(0.35, `rgba(${CYAN},${0.045*flicker})`);
+    glowA.addColorStop(0.65, `rgba(${GOLD},${0.018*flicker})`);
     glowA.addColorStop(1,    `rgba(${GOLD},0)`);
     ctx.fillStyle = glowA;
     ctx.fillRect(0,0,w,h);
-
-    // thin edge glow — just enough to separate the sphere from the dark backdrop,
-    // not a thick glowing tube. Reads as light catching a curved edge, not a light source.
-    ctx.save();
-    ctx.filter = 'blur(3px)';
-    ctx.strokeStyle = `rgba(${CYAN},${0.22*flicker})`;
-    ctx.lineWidth = r*0.05;
-    ctx.stroke(path);
-    ctx.restore();
 
     ctx.globalCompositeOperation = 'source-over';
 
@@ -1444,18 +1449,16 @@ async function submitOnboarding(e){
     ctx.stroke(path);
     ctx.restore();
 
-    // one faint orbiting ring — a thin halo rather than two glowing neon hoops; reads as a subtle
-    // detail catching light rather than a sci-fi logo prop
+    // one faint orbiting ring — a thin dust-mote halo, no glow, so it reads as a physical detail
+    // catching light rather than a sci-fi logo prop
     ctx.globalCompositeOperation = 'lighter';
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(reduced ? 0.35 : t*0.007);
     ctx.beginPath();
     ctx.ellipse(0, 0, r*1.5, r*0.5, 0, 0, Math.PI*2);
-    ctx.strokeStyle = `rgba(${CYAN},${0.22*flicker})`;
-    ctx.lineWidth = 1;
-    ctx.shadowColor = `rgba(${CYAN},0.35)`;
-    ctx.shadowBlur = 4;
+    ctx.strokeStyle = `rgba(${CYAN},${0.13*flicker})`;
+    ctx.lineWidth = 0.75;
     ctx.stroke();
     ctx.restore();
 
