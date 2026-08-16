@@ -731,6 +731,32 @@
           <textarea id="ob-blurb" placeholder="e.g. Residential kitchen &amp; bath remodels in the Denver area. Biggest need right now is faster follow-up on estimate requests." required data-i18n-placeholder="ob.blurbPh"></textarea>
         </div>
 
+        <div class="onboard-marketing" id="onboard-credentials">
+          <div class="onboard-marketing-head">
+            <h3 data-i18n="ob.credH">Business credentials</h3>
+            <p data-i18n="ob.credSub">Super Agent only makes claims in your marketing it can actually back up — so it needs the real details, not placeholders.</p>
+          </div>
+          <div class="onboard-grid">
+            <div class="field">
+              <label for="ob-biztype" data-i18n="ob.bizTypeLabel">What kind of business is this?</label>
+              <input id="ob-biztype" placeholder="e.g. Residential plumbing &amp; HVAC contractor" data-i18n-placeholder="ob.bizTypePh">
+            </div>
+            <div class="field">
+              <label for="ob-founded" data-i18n="ob.foundedLabel">How long has the business been operating?</label>
+              <input id="ob-founded" placeholder="e.g. Since 2014 (about 11 years)" data-i18n-placeholder="ob.foundedPh">
+            </div>
+          </div>
+          <div class="field">
+            <label for="ob-licenses" data-i18n="ob.licensesLabel">Licenses, certifications, or qualifications</label>
+            <textarea id="ob-licenses" placeholder="e.g. Colorado Master Plumber License #12345, EPA 608 Certified, bonded &amp; insured up to $2M" data-i18n-placeholder="ob.licensesPh"></textarea>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="ob-credentials-skip">
+            <span data-i18n="ob.credSkip">Skip this for now</span>
+          </label>
+          <p class="onboard-marketing-note" data-i18n="ob.credNote">If you skip it, Super Agent won't invent details — it will keep asking until it has enough to work with, including a follow-up call to the number above if needed, before it puts any qualifications, license, or years-in-business claim in front of a customer.</p>
+        </div>
+
         <div class="onboard-marketing">
           <div class="onboard-marketing-head">
             <h3 data-i18n="ob.mktH">Marketing &amp; social</h3>
@@ -882,6 +908,12 @@ const I18N = {
     'ob.agentLabel':'What should your Super Agent be called?', 'ob.wakeLabel':'Wake word <span style="color:var(--faint);font-weight:400;">(voice mode)</span>',
     'ob.blurbLabel':'What does your business do, and where should Super Agent focus first?',
     'ob.blurbPh':'e.g. Residential kitchen & bath remodels in the Denver area. Biggest need right now is faster follow-up on estimate requests.',
+    'ob.credH':'Business credentials', 'ob.credSub':'Super Agent only makes claims in your marketing it can actually back up — so it needs the real details, not placeholders.',
+    'ob.bizTypeLabel':'What kind of business is this?', 'ob.bizTypePh':'e.g. Residential plumbing & HVAC contractor',
+    'ob.foundedLabel':'How long has the business been operating?', 'ob.foundedPh':'e.g. Since 2014 (about 11 years)',
+    'ob.licensesLabel':'Licenses, certifications, or qualifications', 'ob.licensesPh':'e.g. Colorado Master Plumber License #12345, EPA 608 Certified, bonded & insured up to $2M',
+    'ob.credSkip':'Skip this for now',
+    'ob.credNote':"If you skip it, Super Agent won't invent details — it will keep asking until it has enough to work with, including a follow-up call to the number above if needed, before it puts any qualifications, license, or years-in-business claim in front of a customer.",
     'ob.mktH':'Marketing &amp; social', 'ob.mktSub':'Super Agent starts working on your marketing from day one — this is what it needs to get going immediately.',
     'ob.platformsLabel':"Where's your business active online? <span style=\"color:var(--faint);font-weight:400;\">(check all that apply)</span>",
     'ob.handlesLabel':'Page links or handles for those <span style="color:var(--faint);font-weight:400;">(optional, paste what you have)</span>',
@@ -950,6 +982,12 @@ const I18N = {
     'ob.agentLabel':'¿Cómo debería llamarse tu Super Agent?', 'ob.wakeLabel':'Palabra de activación <span style="color:var(--faint);font-weight:400;">(modo de voz)</span>',
     'ob.blurbLabel':'¿A qué se dedica tu negocio, y en qué debería enfocarse primero Super Agent?',
     'ob.blurbPh':'ej. Remodelaciones de cocina y baño residenciales en el área de Denver. La necesidad más urgente ahora mismo es un seguimiento más rápido a las solicitudes de cotización.',
+    'ob.credH':'Credenciales del negocio', 'ob.credSub':'Super Agent solo hace afirmaciones en tu marketing que realmente puede respaldar — por eso necesita los detalles reales, no marcadores de posición.',
+    'ob.bizTypeLabel':'¿Qué tipo de negocio es este?', 'ob.bizTypePh':'ej. Contratista residencial de plomería y climatización',
+    'ob.foundedLabel':'¿Cuánto tiempo lleva operando el negocio?', 'ob.foundedPh':'ej. Desde 2014 (aproximadamente 11 años)',
+    'ob.licensesLabel':'Licencias, certificaciones o calificaciones', 'ob.licensesPh':'ej. Licencia de Plomero Maestro de Colorado #12345, Certificación EPA 608, afianzado y asegurado hasta $2M',
+    'ob.credSkip':'Omitir esto por ahora',
+    'ob.credNote':'Si lo omites, Super Agent no inventará detalles — seguirá preguntando hasta tener suficiente información, incluyendo una llamada de seguimiento al número de arriba si es necesario, antes de mencionar cualquier calificación, licencia o antigüedad del negocio frente a un cliente.',
     'ob.mktH':'Marketing y redes sociales', 'ob.mktSub':'Super Agent empieza a trabajar en tu marketing desde el primer día — esto es lo que necesita para arrancar de inmediato.',
     'ob.platformsLabel':'¿Dónde tiene presencia tu negocio en línea? <span style="color:var(--faint);font-weight:400;">(marca todas las que apliquen)</span>',
     'ob.handlesLabel':'Enlaces o usuarios de esas páginas <span style="color:var(--faint);font-weight:400;">(opcional, pega lo que tengas)</span>',
@@ -1099,6 +1137,15 @@ async function submitOnboarding(e){
     `Primary goal: ${goal}`,
   ].filter(Boolean).join(' | ');
 
+  // business credentials — used so Super Agent only ever states qualifications, licenses, and
+  // years-in-business that were actually confirmed. If left blank, credentials_verified stays false
+  // and Super Agent is expected to keep following up (by chat, email, or a phone call) until it has
+  // enough to work with, rather than inventing or assuming anything for marketing copy.
+  const bizType = document.getElementById('ob-biztype').value.trim();
+  const founded = document.getElementById('ob-founded').value.trim();
+  const licenses = document.getElementById('ob-licenses').value.trim();
+  const credentialsSkipped = document.getElementById('ob-credentials-skip').checked;
+
   const payload = {
     session_id: sessionStorage.getItem('genie_session_id') || '',
     business: document.getElementById('ob-business').value.trim(),
@@ -1109,6 +1156,11 @@ async function submitOnboarding(e){
     wake_word: document.getElementById('ob-wake').value.trim() || 'Hey Super Agent',
     personality: document.getElementById('ob-personality').value,
     blurb: document.getElementById('ob-blurb').value.trim(),
+    business_type: bizType,
+    years_in_business: founded,
+    licenses_and_qualifications: licenses,
+    credentials_skipped: credentialsSkipped,
+    credentials_verified: Boolean(bizType || founded || licenses) && !credentialsSkipped,
     integrations: marketingSummary,
     tier: 'chat',
     addon_social: document.getElementById('ob-social').checked,
