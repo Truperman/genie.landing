@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Super Agent — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;480;560;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: oklch(0.1 0.007 273);
+    --bg-2: oklch(0.075 0.007 273);
+    --panel: oklch(0.14 0.012 273);
+    --panel-2: oklch(0.17 0.014 273);
+    --ink: oklch(0.98 0.004 273);
+    --muted: oklch(0.68 0.01 273);
+    --border: oklch(1 0 0 / 0.09);
+    --accent: oklch(0.74 0.19 272);
+    --cyan: oklch(0.78 0.15 210);
+    --good: oklch(0.75 0.16 145);
+    --bad: oklch(0.68 0.19 25);
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; color:var(--ink); background:var(--bg);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  h1,h2,h3{ font-family:'Fraunces',Georgia,serif; font-weight:480; letter-spacing:-0.02em; margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:32px 20px 80px; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 0 24px; border-bottom:1px solid var(--border); margin-bottom:28px; }
+  .brand{ font-family:'Fraunces',serif; font-size:18px; font-weight:560; }
+  .brand span{ color:var(--accent); }
+  .who{ display:flex; align-items:center; gap:12px; font-size:13px; color:var(--muted); }
+  .btn{ appearance:none; border:1px solid var(--border); background:var(--panel-2); color:var(--ink);
+    padding:8px 14px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn:hover{ border-color: oklch(1 0 0 / 0.2); }
+  .btn.primary{ background:linear-gradient(135deg, var(--accent), var(--cyan)); color:oklch(0.12 0.01 273); border:none; }
+  .btn.danger{ background:oklch(0.22 0.05 25); border-color:oklch(0.4 0.1 25); color:oklch(0.9 0.05 25); }
+  .btn:disabled{ opacity:0.5; cursor:default; }
+  .btn.small{ padding:5px 10px; font-size:12px; }
+
+  #signin{ max-width:380px; margin:14vh auto 0; text-align:center; }
+  #signin input{ width:100%; margin-top:12px; padding:11px 13px; border-radius:8px; border:1px solid var(--border);
+    background:var(--panel); color:var(--ink); font-family:inherit; font-size:14px; }
+  #signin .btn{ width:100%; margin-top:16px; padding:11px; }
+  #signin .err{ color:var(--bad); font-size:13px; margin-top:12px; min-height:18px; }
+  #signin p.sub{ color:var(--muted); font-size:14px; margin-top:8px; }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:22px; }
+  .tab{ padding:8px 16px; border-radius:8px; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer; }
+  .tab.active{ color:var(--ink); background:var(--panel-2); }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:18px; }
+  .card h3{ font-size:16px; margin-bottom:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{ text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; padding:8px 10px; border-bottom:1px solid var(--border); }
+  td{ padding:10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tr.row:hover{ background:var(--panel-2); cursor:pointer; }
+  .pill{ display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+  .pill.on{ background:oklch(0.3 0.08 145 / 0.4); color:var(--good); }
+  .pill.off{ background:oklch(0.3 0.02 273 / 0.6); color:var(--muted); }
+  .detail{ margin-top:10px; padding:14px; background:var(--bg-2); border-radius:10px; font-size:13px; color:var(--muted); display:none; }
+  .detail.open{ display:block; }
+  .detail b{ color:var(--ink); }
+  .detail .row-actions{ margin-top:12px; display:flex; gap:8px; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+  label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; }
+  input[type=number], input[type=text], textarea{ width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg-2); color:var(--ink); font-family:inherit; font-size:13.5px; }
+  textarea{ min-height:70px; resize:vertical; }
+  .floor-row{ display:flex; gap:10px; }
+  .floor-row > div{ flex:1; }
+  .save-msg{ font-size:12.5px; color:var(--good); margin-left:10px; }
+  .note{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-top:4px; }
+  .empty{ color:var(--muted); font-size:13.5px; padding:20px 0; text-align:center; }
+</style>
+</head>
+<body>
+
+<div id="signin">
+  <h1>Super Agent <span>Admin</span></h1>
+  <p class="sub">Sign in with your Master Portal account.</p>
+  <input type="text" id="su-email" placeholder="Email" autocomplete="username">
+  <input type="password" id="su-pass" placeholder="Password" autocomplete="current-password">
+  <button class="btn primary" id="su-btn">Sign in</button>
+  <div class="err" id="su-err"></div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="topbar">
+    <div class="brand">Super Agent <span>Admin</span></div>
+    <div class="who"><span id="who-email"></span><button class="btn small" id="signout">Sign out</button></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="customers">Customers</div>
+    <div class="tab" data-tab="pricing">Pricing</div>
+    <div class="tab" data-tab="updates">Updates</div>
+  </div>
+
+  <div class="panel active" id="panel-customers">
+    <div class="card">
+      <h3>Genie customers</h3>
+      <div id="cust-table"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-pricing">
+    <div class="card">
+      <h3>Weekly guaranteed floor (cents)</h3>
+      <p class="note">What each week guarantees toward the monthly profit target, if real activity charges fall short. Cycles every 4 weeks.</p>
+      <div class="floor-row" style="margin-top:14px">
+        <div><label>Week 1 (¢)</label><input type="number" id="floor-0"></div>
+        <div><label>Week 2 (¢)</label><input type="number" id="floor-1"></div>
+        <div><label>Week 3 (¢)</label><input type="number" id="floor-2"></div>
+        <div><label>Week 4 (¢)</label><input type="number" id="floor-3"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Real activity charges</h3>
+      <div class="grid">
+        <div><label>Per resolved conversation (¢)</label><input type="number" id="conv-cents"></div>
+        <div><label>Per autonomous action (¢)</label><input type="number" id="action-cents"></div>
+        <div><label>Weekly spend cap (¢)</label><input type="number" id="cap-cents"></div>
+      </div>
+      <p class="note">The cap is the most a client is ever billed in one week, across floor + real usage combined.</p>
+    </div>
+    <button class="btn primary" id="save-pricing">Save pricing</button>
+    <span class="save-msg" id="pricing-msg"></span>
+  </div>
+
+  <div class="panel" id="panel-updates">
+    <div class="card">
+      <h3>Queue an update / skill push</h3>
+      <p class="note">This writes the update to a queue Genie can read — it does not push live yet until the agent server is wired to poll it. See chat for details.</p>
+      <div class="grid" style="margin-top:12px">
+        <div style="grid-column:1/-1"><label>Update name</label><input type="text" id="up-name" placeholder="e.g. Add Spanish voicemail greeting"></div>
+      </div>
+      <div style="margin-top:12px"><label>Notes</label><textarea id="up-notes" placeholder="What this update does, and why"></textarea></div>
+      <button class="btn primary" style="margin-top:12px" id="queue-update">Queue update</button>
+      <span class="save-msg" id="update-msg"></span>
+    </div>
+    <div class="card">
+      <h3>Update history</h3>
+      <div id="update-table"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-functions-compat.js"></script>
+<script>
+  // Public web config — same project every other Money Masteries page uses.
+  // Safe to embed (this is what Firebase's own client SDK always ships with);
+  // real access control happens server-side in every Cloud Function below,
+  // which checks the signed-in email against the Master Portal account.
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXTLMvgQovF6mTpB1RHqSern9peBlQIAo",
+    authDomain: "money-masteries-2cc76.firebaseapp.com",
+    projectId: "money-masteries-2cc76",
+    appId: "1:54508198711:web:0bbe4f5c18828f721618b2",
+    messagingSenderId: "54508198711",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const fns = firebase.app().functions("us-central1");
+  const call = (name) => fns.httpsCallable(name);
+  const cents = (n) => "$" + (Number(n || 0) / 100).toFixed(2);
+
+  const signinEl = document.getElementById('signin');
+  const appEl = document.getElementById('app');
+  const errEl = document.getElementById('su-err');
+
+  document.getElementById('su-btn').addEventListener('click', async () => {
+    errEl.textContent = "";
+    const email = document.getElementById('su-email').value.trim();
+    const pass = document.getElementById('su-pass').value;
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) {
+      errEl.textContent = e.message || "Could not sign in.";
+    }
+  });
+  document.getElementById('signout').addEventListener('click', () => auth.signOut());
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { signinEl.style.display = ''; appEl.style.display = 'none'; return; }
+    signinEl.style.display = 'none';
+    appEl.style.display = '';
+    document.getElementById('who-email').textContent = user.email;
+    loadCustomers();
+    loadPricing();
+    loadUpdates();
+  });
+
+  // ── Tabs ────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+  }));
+
+  // ── Customers ───────────────────────────────────────────
+  async function loadCustomers() {
+    const el = document.getElementById('cust-table');
+    try {
+      const res = await call('getGenieOrders')();
+      const orders = res.data.orders || [];
+      if (!orders.length) { el.innerHTML = '<div class="empty">No Genie customers yet.</div>'; return; }
+      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th></th></tr>';
+      orders.forEach((o, i) => {
+        html += `<tr class="row" data-i="${i}"><td>${esc(o.onboardPayload?.business || '—')}</td><td>${esc(o.email || '—')}</td>` +
+          `<td>${esc(o.tier || '—')}</td><td><span class="pill ${o.onboarded ? 'on' : 'off'}">${o.onboarded ? 'yes' : 'no'}</span></td>` +
+          `<td>${o.subscriptionId ? '' : '<span class="note">no subscription</span>'}</td></tr>` +
+          `<tr><td colspan="5" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>`;
+      });
+      html += '</table>';
+      el.innerHTML = html;
+      el.querySelectorAll('tr.row').forEach(r => r.addEventListener('click', () => toggleDetail(r, orders[r.dataset.i])));
+    } catch (e) {
+      el.innerHTML = '<div class="empty">Could not load customers: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  async function toggleDetail(rowEl, order) {
+    const i = rowEl.dataset.i;
+    const d = document.getElementById('detail-' + i);
+    const open = d.classList.contains('open');
+    document.querySelectorAll('.detail.open').forEach(x => x.classList.remove('open'));
+    if (open) return;
+    d.classList.add('open');
+    if (!order.subscriptionId) { d.innerHTML = '<span class="note">No Stripe subscription on this order yet.</span>'; return; }
+    d.innerHTML = 'Loading usage…';
+    try {
+      const res = await call('getGenieCustomerUsage')({ subscriptionId: order.subscriptionId });
+      const u = res.data;
+      d.innerHTML = `
+        Status: <b>${esc(u.status)}${u.paused ? ' (paused)' : ''}</b> ·
+        Reported this period: <b>${u.reportedCentsThisPeriod == null ? '—' : cents(u.reportedCentsThisPeriod)}</b> ·
+        Floor cycle week: <b>${u.cycleWeek}</b>
+        <div class="row-actions">
+          <button class="btn small" data-act="pause">Pause</button>
+          <button class="btn small" data-act="resume">Resume</button>
+          <button class="btn small danger" data-act="cancel">Cancel</button>
+        </div>`;
+      d.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', async () => {
+        const action = b.dataset.act;
+        if (action === 'cancel' && !confirm('Cancel this customer\\'s subscription? This cannot be undone from here.')) return;
+        b.disabled = true;
+        try {
+          await call('setGenieCustomerStatus')({ subscriptionId: order.subscriptionId, action });
+          toggleDetail(rowEl, order); // closes
+          rowEl.click(); // reopen refreshed
+        } catch (e) { alert(e.message); b.disabled = false; }
+      }));
+    } catch (e) {
+      d.innerHTML = '<span class="note">Could not load usage: ' + esc(e.message) + '</span>';
+    }
+  }
+
+  // ── Pricing ─────────────────────────────────────────────
+  async function loadPricing() {
+    try {
+      const res = await call('getGenieBillingSettings')();
+      const c = res.data;
+      c.floorCycleCents.forEach((v, i) => { const el = document.getElementById('floor-' + i); if (el) el.value = v; });
+      document.getElementById('conv-cents').value = c.conversationCents;
+      document.getElementById('action-cents').value = c.actionCents;
+      document.getElementById('cap-cents').value = c.weeklyCapCents;
+    } catch (e) {
+      document.getElementById('pricing-msg').textContent = 'Could not load: ' + e.message;
+    }
+  }
+  document.getElementById('save-pricing').addEventListener('click', async () => {
+    const msg = document.getElementById('pricing-msg');
+    msg.textContent = 'Saving…';
+    const floorCycleCents = [0, 1, 2, 3].map(i => Number(document.getElementById('floor-' + i).value));
+    try {
+      await call('setGenieBillingSettings')({
+        floorCycleCents,
+        conversationCents: Number(document.getElementById('conv-cents').value),
+        actionCents: Number(document.getElementById('action-cents').value),
+        weeklyCapCents: Number(document.getElementById('cap-cents').value),
+      });
+      msg.textContent = 'Saved — takes effect on the next scheduled run.';
+    } catch (e) { msg.textContent = 'Error: ' + e.message; }
+  });
+
+  // ── Updates ─────────────────────────────────────────────
+  async function loadUpdates() {
+    const el = document.getElementById('update-table');
+    try {
+      const res = await call('listGenieUpdates')();
+      const rows = res.data.updates || [];
+      if (!rows.length) { el.innerHTML = '<div class="empty">No updates queued yet.</div>'; return; }
+      let html = '<table><tr><th>Name</th><th>Status</th><th>Notes</th></tr>';
+      rows.forEach(r => {
+        html += `<tr><td>${esc(r.name)}</td><td><span class="pill off">${esc(r.status || 'queued')}</span></td><td>${esc(r.notes || '')}</td></tr>`;
+      });
+      el.innerHTML = html + '</table>';
+    } catch (e) {
+      el.innerHTML = '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+    }
+  }
+  document.getElementById('queue-update').addEventListener('click', async () => {
+    const msg = document.getElementById('update-msg');
+    const name = document.getElementById('up-name').value.trim();
+    if (!name) { msg.textContent = 'Name is required.'; return; }
+    msg.textContent = 'Queuing…';
+    try {
+      await call('queueGenieUpdate')({ name, notes: document.getElementById('up-notes').value.trim(), targetCustomers: 'all' });
+      document.getElementById('up-name').value = '';
+      document.getElementById('up-notes').value = '';
+      msg.textContent = 'Queued.';
+      loadUpdates();
+    } catch (e) { msg.textContent = 'Error: ' + e.message; }
+  });
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>
