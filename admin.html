@@ -97,6 +97,7 @@
 
   <div class="tabs">
     <div class="tab active" data-tab="customers">Customers</div>
+    <div class="tab" data-tab="access">Dashboard Access</div>
     <div class="tab" data-tab="pricing">Pricing</div>
     <div class="tab" data-tab="updates">Updates</div>
   </div>
@@ -105,6 +106,33 @@
     <div class="card">
       <h3>Genie customers</h3>
       <div id="cust-table"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-access">
+    <div class="card">
+      <h3>Grant or edit a customer's dashboard login</h3>
+      <p class="note">This is the login a customer uses at their own "My Genie" page — separate from provisioning their droplet, which still happens via your usual deploy process. Turning access off here immediately blocks their dashboard without touching their droplet or Stripe subscription.</p>
+      <div class="grid" style="margin-top:14px">
+        <div><label>Email</label><input type="text" id="ac-email"></div>
+        <div><label>Business name</label><input type="text" id="ac-business"></div>
+        <div><label>Droplet IP</label><input type="text" id="ac-ip" placeholder="e.g. 104.131.44.35"></div>
+        <div><label>Tier</label>
+          <select id="ac-tier" style="width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:13.5px;">
+            <option value="chat">Chat only</option>
+            <option value="desktop">Chat + Live Desktop (VNC)</option>
+          </select>
+        </div>
+        <div><label>Access user (Basic Auth)</label><input type="text" id="ac-user" value="genie"></div>
+        <div><label>Access key (Basic Auth password)</label><input type="text" id="ac-key" placeholder="matches htpasswd on their droplet"></div>
+      </div>
+      <div style="margin-top:12px"><label>Notes (shown on their dashboard)</label><textarea id="ac-notes"></textarea></div>
+      <button class="btn primary" style="margin-top:12px" id="ac-save">Save account</button>
+      <span class="save-msg" id="access-msg"></span>
+    </div>
+    <div class="card">
+      <h3>All dashboard accounts</h3>
+      <div id="access-table"><div class="empty">Loading…</div></div>
     </div>
   </div>
 
@@ -193,6 +221,7 @@
     appEl.style.display = '';
     document.getElementById('who-email').textContent = user.email;
     loadCustomers();
+    loadAccess();
     loadPricing();
     loadUpdates();
   });
@@ -247,9 +276,21 @@
           <button class="btn small" data-act="pause">Pause</button>
           <button class="btn small" data-act="resume">Resume</button>
           <button class="btn small danger" data-act="cancel">Cancel</button>
+          <button class="btn small" data-act="grant-login">Grant dashboard login…</button>
         </div>`;
       d.querySelectorAll('button[data-act]').forEach(b => b.addEventListener('click', async () => {
         const action = b.dataset.act;
+        if (action === 'grant-login') {
+          document.getElementById('ac-email').value = order.email || '';
+          document.getElementById('ac-business').value = order.onboardPayload?.business || '';
+          document.getElementById('ac-tier').value = order.tier === 'desktop' ? 'desktop' : 'chat';
+          document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+          document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+          document.querySelector('.tab[data-tab="access"]').classList.add('active');
+          document.getElementById('panel-access').classList.add('active');
+          document.getElementById('ac-ip').focus();
+          return;
+        }
         if (action === 'cancel' && !confirm('Cancel this customer\\'s subscription? This cannot be undone from here.')) return;
         b.disabled = true;
         try {
@@ -262,6 +303,69 @@
       d.innerHTML = '<span class="note">Could not load usage: ' + esc(e.message) + '</span>';
     }
   }
+
+  // ── Dashboard Access ────────────────────────────────────
+  async function loadAccess() {
+    const el = document.getElementById('access-table');
+    try {
+      const res = await call('listGenieClients')();
+      const clients = res.data.clients || [];
+      if (!clients.length) { el.innerHTML = '<div class="empty">No dashboard accounts yet.</div>'; return; }
+      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Access</th><th>Droplet</th><th></th></tr>';
+      clients.forEach(c => {
+        html += `<tr>
+          <td>${esc(c.business || '—')}</td>
+          <td>${esc(c.email || '—')}</td>
+          <td>${c.tier === 'desktop' ? 'Chat + Desktop' : 'Chat only'}</td>
+          <td><span class="pill ${c.dashboardAccess ? 'on' : 'off'}">${c.dashboardAccess ? 'ON' : 'OFF'}</span></td>
+          <td>${esc(c.dropletIp || '—')}</td>
+          <td>
+            <button class="btn small" data-uid="${c.uid}" data-toggle="${c.dashboardAccess ? 'off' : 'on'}">${c.dashboardAccess ? 'Turn off' : 'Turn on'}</button>
+            <button class="btn small danger" data-uid="${c.uid}" data-del="1" data-email="${esc(c.email || '')}">Delete</button>
+          </td>
+        </tr>`;
+      });
+      el.innerHTML = html + '</table>';
+      el.querySelectorAll('button[data-toggle]').forEach(b => b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await call('setGenieClientAccess')({ uid: b.dataset.uid, active: b.dataset.toggle === 'on' });
+          loadAccess();
+        } catch (e) { alert(e.message); b.disabled = false; }
+      }));
+      el.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('Delete the dashboard login for ' + b.dataset.email + '? This does NOT touch their droplet or Stripe subscription.')) return;
+        b.disabled = true;
+        try {
+          await call('deleteGenieClientAccount')({ uid: b.dataset.uid });
+          loadAccess();
+        } catch (e) { alert(e.message); b.disabled = false; }
+      }));
+    } catch (e) {
+      el.innerHTML = '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+    }
+  }
+  document.getElementById('ac-save').addEventListener('click', async () => {
+    const msg = document.getElementById('access-msg');
+    const email = document.getElementById('ac-email').value.trim();
+    if (!email) { msg.textContent = 'Email is required.'; return; }
+    msg.textContent = 'Saving…';
+    try {
+      const res = await call('createGenieClientAccount')({
+        email,
+        business: document.getElementById('ac-business').value.trim(),
+        dropletIp: document.getElementById('ac-ip').value.trim(),
+        tier: document.getElementById('ac-tier').value,
+        accessUser: document.getElementById('ac-user').value.trim(),
+        accessKey: document.getElementById('ac-key').value.trim(),
+        notes: document.getElementById('ac-notes').value,
+      });
+      msg.textContent = res.data.tempPassword
+        ? 'Saved. New account — temporary password: ' + res.data.tempPassword + ' (send this to them, it will not be shown again)'
+        : 'Saved.';
+      loadAccess();
+    } catch (e) { msg.textContent = 'Error: ' + e.message; }
+  });
 
   // ── Pricing ─────────────────────────────────────────────
   async function loadPricing() {

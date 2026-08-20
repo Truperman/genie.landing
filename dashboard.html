@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Genie — Dashboard</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg: oklch(0.1 0.007 273);
+    --surface: oklch(0.155 0.014 273);
+    --border: oklch(1 0 0 / 0.1);
+    --ink: oklch(0.98 0.004 273);
+    --muted: oklch(0.7 0.014 273);
+    --faint: oklch(0.64 0.014 273);
+    --accent: #a3b4ff;
+    --accent-2: #7ee8fa;
+    --accent-ink: oklch(0.16 0.03 273);
+    --good: #6fe7c0;
+    --warn: #e8b64f;
+    --bad: #ff9a9a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter",Helvetica Neue,Arial,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    width:100%; max-width:480px; background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+  .brand-dot{ width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-2)); }
+  .brand-name{ font-weight:700; letter-spacing:0.5px; font-size:15px; color:var(--accent); }
+  h1{ font-size:22px; margin:0 0 8px; }
+  p.sub{ color:var(--muted); font-size:14px; line-height:1.5; margin:0 0 24px; }
+  label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+  input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--border);
+    background:oklch(0.13 0.007 273); color:var(--ink); font-size:14px; margin-bottom:16px;
+  }
+  input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  button{
+    width:100%; padding:13px; border-radius:10px; border:none; font-size:14.5px; font-weight:600;
+    cursor:pointer; transition:opacity .15s;
+  }
+  button:hover{ opacity:0.9; }
+  button:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-primary{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); }
+  .btn-secondary{ background:transparent; border:1px solid var(--border); color:var(--ink); margin-top:10px; }
+  .btn-vnc{ background:oklch(0.2 0.02 273); border:1px solid var(--border); color:var(--accent-2); margin-top:10px; }
+  .err{ color:var(--bad); font-size:13px; margin:-8px 0 16px; min-height:16px; }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:5px 12px;
+    border-radius:999px; margin-bottom:18px;
+  }
+  .status-on{ background:oklch(0.7 0.15 160 / 0.15); color:var(--good); }
+  .status-off{ background:oklch(0.75 0.15 70 / 0.15); color:var(--warn); }
+  .business-name{ font-size:19px; font-weight:600; margin:0 0 4px; }
+  .notes{ color:var(--faint); font-size:13.5px; line-height:1.5; margin:0 0 22px; }
+  .creds{ margin-top:18px; padding:12px 14px; background:oklch(0.13 0.007 273); border-radius:10px; font-size:12.5px; color:var(--faint); line-height:1.6; }
+  .creds b{ color:var(--muted); }
+  .hidden{ display:none !important; }
+  .top-right{ text-align:right; margin-bottom:8px; }
+  .link-btn{ background:none; border:none; color:var(--faint); font-size:12.5px; cursor:pointer; text-decoration:underline; width:auto; padding:0; }
+  .center-msg{ text-align:center; color:var(--muted); font-size:14px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand"><span class="brand-dot"></span><span class="brand-name">GENIE</span></div>
+
+  <!-- LOGIN STATE -->
+  <div id="state-login">
+    <h1>Log in to your Genie</h1>
+    <p class="sub">Sign in with the email and password your provider set up for you.</p>
+    <div class="err" id="login-err"></div>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" placeholder="you@business.com">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign in</button>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div id="state-loading" class="hidden">
+    <p class="center-msg">Loading your dashboard…</p>
+  </div>
+
+  <!-- NO ACCOUNT STATE -->
+  <div id="state-no-account" class="hidden">
+    <h1>No Genie account found</h1>
+    <p class="sub">We don't have a Genie dashboard set up for this login yet. If you just signed up, this can take a little while to activate — otherwise reach out and we'll get it sorted.</p>
+    <button class="btn-secondary" onclick="doLogout()">Sign out</button>
+  </div>
+
+  <!-- PAUSED STATE -->
+  <div id="state-paused" class="hidden">
+    <div class="top-right"><button class="link-btn" onclick="doLogout()">Sign out</button></div>
+    <span class="status-pill status-off">⏸ Access paused</span>
+    <p class="business-name" id="paused-business"></p>
+    <p class="sub">Your Genie dashboard access is currently paused. If this doesn't look right, get in touch and we'll take a look.</p>
+  </div>
+
+  <!-- ACTIVE DASHBOARD STATE -->
+  <div id="state-active" class="hidden">
+    <div class="top-right"><button class="link-btn" onclick="doLogout()">Sign out</button></div>
+    <span class="status-pill status-on">● Live</span>
+    <p class="business-name" id="active-business"></p>
+    <p class="notes" id="active-notes"></p>
+    <button class="btn-primary" id="btn-chat" onclick="launch('chat')">Launch my Genie</button>
+    <button class="btn-vnc hidden" id="btn-vnc" onclick="launch('vnc')">Watch it working live (VNC)</button>
+    <div class="creds" id="creds-box"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    projectId: "money-masteries-2cc76",
+    appId: "1:54508198711:web:0bbe4f5c18828f721618b2",
+    storageBucket: "money-masteries-2cc76.firebasestorage.app",
+    apiKey: "AIzaSyCXTLMvgQovF6mTpB1RHqSern9peBlQIAo",
+    authDomain: "money-masteries-2cc76.firebaseapp.com",
+    messagingSenderId: "54508198711",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const functions = firebase.functions();
+
+  let dash = { chatUrl: "", vncUrl: "" };
+
+  function show(id) {
+    ["state-login", "state-loading", "state-no-account", "state-paused", "state-active"].forEach(s => {
+      document.getElementById(s).classList.toggle("hidden", s !== id);
+    });
+  }
+
+  function doLogin() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const btn = document.getElementById("login-btn");
+    const err = document.getElementById("login-err");
+    err.textContent = "";
+    if (!email || !password) { err.textContent = "Enter your email and password."; return; }
+    btn.disabled = true;
+    auth.signInWithEmailAndPassword(email, password)
+      .catch((e) => {
+        err.textContent = e.code === "auth/invalid-credential" || e.code === "auth/wrong-password" || e.code === "auth/user-not-found"
+          ? "Wrong email or password."
+          : "Couldn't sign in — try again in a moment.";
+      })
+      .finally(() => { btn.disabled = false; });
+  }
+
+  function doLogout() {
+    auth.signOut();
+  }
+
+  function launch(which) {
+    const url = which === "vnc" ? dash.vncUrl : dash.chatUrl;
+    if (url) window.open(url, "_blank", "noopener");
+  }
+
+  const MASTER_EMAIL = "reachdavid.work@gmail.com";
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { show("state-login"); return; }
+    if ((user.email || "").toLowerCase() === MASTER_EMAIL) {
+      window.location.replace("./admin.html");
+      return;
+    }
+    show("state-loading");
+    try {
+      const getMyGenieDashboard = functions.httpsCallable("getMyGenieDashboard");
+      const res = await getMyGenieDashboard();
+      const data = res.data;
+      if (!data.hasAccount) { show("state-no-account"); return; }
+      if (!data.active) {
+        document.getElementById("paused-business").textContent = data.business || "";
+        show("state-paused");
+        return;
+      }
+      dash = data;
+      document.getElementById("active-business").textContent = data.business || "Your Genie";
+      document.getElementById("active-notes").textContent = data.notes || "";
+      document.getElementById("btn-vnc").classList.toggle("hidden", data.tier !== "desktop" || !data.vncUrl);
+      if (data.accessUser && data.accessKey) {
+        document.getElementById("creds-box").innerHTML =
+          "First time launching? Your browser will ask for a username/password once:<br>" +
+          "<b>Username:</b> " + data.accessUser + "<br><b>Password:</b> " + data.accessKey;
+      }
+      show("state-active");
+    } catch (e) {
+      show("state-no-account");
+    }
+  });
+</script>
+</body>
+</html>
