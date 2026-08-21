@@ -140,6 +140,9 @@
 
 <div class="card" id="main-card">
   <div class="brand"><span class="brand-dot"></span><span class="brand-name">GENIE</span></div>
+  <div id="preview-banner" class="hidden" style="background:oklch(0.7 0.15 70 / 0.15); color:var(--warn); border:1px solid var(--border); border-radius:10px; padding:8px 14px; font-size:12.5px; margin-bottom:16px;">
+    👁 Admin preview — you're viewing this exactly as <span id="preview-business">this client</span> sees it. Chat messages and uploads here are saved to their real account; growth-idea refreshes in this mode aren't billed.
+  </div>
 
   <!-- LOGIN STATE -->
   <div id="state-login">
@@ -294,8 +297,33 @@
     messagingSenderId: "54508198711",
   };
   firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const functions = firebase.functions();
+  let auth = firebase.auth();
+  let functions = firebase.functions();
+
+  // ── Admin preview mode ───────────────────────────────────────────────
+  // If David opened this page via the admin panel's "Preview dashboard"
+  // button, the URL carries a one-time custom auth token in the fragment
+  // (never sent to any server, unlike a query string). We sign into a
+  // SEPARATE, isolated Firebase app instance with it — never the default
+  // one — so this preview session can never clobber his real admin login
+  // in another tab (Firebase Auth otherwise shares session state across
+  // tabs of the same origin via localStorage).
+  let isPreviewMode = false;
+  const previewMatch = /(?:^|#)preview=([^&]+)/.exec(location.hash);
+  if (previewMatch) {
+    isPreviewMode = true;
+    const previewToken = decodeURIComponent(previewMatch[1]);
+    history.replaceState(null, "", location.pathname); // scrub the token out of the visible URL/history
+    const previewApp = firebase.initializeApp(firebaseConfig, "adminPreview");
+    auth = previewApp.auth();
+    functions = previewApp.functions("us-central1");
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+      .then(() => auth.signInWithCustomToken(previewToken))
+      .catch((e) => {
+        document.getElementById("login-err").textContent = "Preview link expired or invalid — go back to admin and click Preview again.";
+        show("state-login");
+      });
+  }
 
   let dash = { chatUrl: "", vncUrl: "" };
 
@@ -343,7 +371,7 @@
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) { show("state-login"); return; }
-    if ((user.email || "").toLowerCase() === MASTER_EMAIL) {
+    if (!isPreviewMode && (user.email || "").toLowerCase() === MASTER_EMAIL) {
       window.location.replace("./admin.html");
       return;
     }
@@ -359,6 +387,10 @@
         return;
       }
       dash = data;
+      if (isPreviewMode) {
+        document.getElementById("preview-banner").classList.remove("hidden");
+        document.getElementById("preview-business").textContent = data.business || "this client";
+      }
       document.getElementById("active-business").textContent = data.business || "Your Genie";
       document.getElementById("active-notes").textContent = data.notes || "";
       document.getElementById("btn-vnc").classList.toggle("hidden", data.tier !== "desktop" || !data.vncUrl);

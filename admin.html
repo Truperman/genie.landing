@@ -348,12 +348,21 @@
           <td><span class="pill ${c.dashboardAccess ? 'on' : 'off'}">${c.dashboardAccess ? 'ON' : 'OFF'}</span></td>
           <td>${esc(c.dropletIp || '—')}</td>
           <td>
+            <button class="btn small" data-uid="${c.uid}" data-preview="1">Preview dashboard</button>
             <button class="btn small" data-uid="${c.uid}" data-toggle="${c.dashboardAccess ? 'off' : 'on'}">${c.dashboardAccess ? 'Turn off' : 'Turn on'}</button>
             <button class="btn small danger" data-uid="${c.uid}" data-del="1" data-email="${esc(c.email || '')}">Delete</button>
           </td>
         </tr>`;
       });
       el.innerHTML = html + '</table>';
+      el.querySelectorAll('button[data-preview]').forEach(b => b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          const res = await call('adminGetClientPreviewToken')({ uid: b.dataset.uid });
+          window.open('./dashboard.html#preview=' + encodeURIComponent(res.data.token), '_blank', 'noopener');
+        } catch (e) { alert(e.message); }
+        b.disabled = false;
+      }));
       el.querySelectorAll('button[data-toggle]').forEach(b => b.addEventListener('click', async () => {
         b.disabled = true;
         try {
