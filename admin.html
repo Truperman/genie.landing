@@ -134,6 +134,33 @@
       <h3>All dashboard accounts</h3>
       <div id="access-table"><div class="empty">Loading…</div></div>
     </div>
+    <div class="card">
+      <h3>Queue scheduled work for a client</h3>
+      <p class="note">Shows up on that client's own dashboard under their "Scheduled Work" tab.</p>
+      <div class="grid" style="margin-top:12px">
+        <div><label>Client</label>
+          <select id="task-uid" style="width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:13.5px;">
+            <option value="">Loading clients…</option>
+          </select>
+        </div>
+        <div><label>Status</label>
+          <select id="task-status" style="width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:13.5px;">
+            <option value="scheduled">Scheduled</option>
+            <option value="in_progress">In progress</option>
+            <option value="done">Done</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1"><label>Title</label><input type="text" id="task-title" placeholder="e.g. Research 5 local competitors"></div>
+      </div>
+      <div style="margin-top:12px"><label>Details</label><textarea id="task-details" placeholder="What this task covers"></textarea></div>
+      <button class="btn primary" style="margin-top:12px" id="task-queue">Queue task</button>
+      <span class="save-msg" id="task-msg"></span>
+    </div>
+    <div class="card">
+      <h3>That client's scheduled work</h3>
+      <div id="task-table"><div class="empty">Pick a client above.</div></div>
+    </div>
   </div>
 
   <div class="panel" id="panel-pricing">
@@ -310,6 +337,7 @@
     try {
       const res = await call('listGenieClients')();
       const clients = res.data.clients || [];
+      populateTaskClientSelect(clients);
       if (!clients.length) { el.innerHTML = '<div class="empty">No dashboard accounts yet.</div>'; return; }
       let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Access</th><th>Droplet</th><th></th></tr>';
       clients.forEach(c => {
@@ -364,6 +392,77 @@
         ? 'Saved. New account — temporary password: ' + res.data.tempPassword + ' (send this to them, it will not be shown again)'
         : 'Saved.';
       loadAccess();
+    } catch (e) { msg.textContent = 'Error: ' + e.message; }
+  });
+
+  // ── Scheduled work (per client) ──────────────────────────
+  let taskClientsCache = [];
+  function populateTaskClientSelect(clients) {
+    taskClientsCache = clients;
+    const sel = document.getElementById('task-uid');
+    const prev = sel.value;
+    if (!clients.length) { sel.innerHTML = '<option value="">No clients yet</option>'; return; }
+    sel.innerHTML = '<option value="">Select a client…</option>' + clients.map(c =>
+      `<option value="${c.uid}">${esc(c.business || c.email || c.uid)}</option>`
+    ).join('');
+    if (prev && clients.some(c => c.uid === prev)) sel.value = prev;
+  }
+  document.getElementById('task-uid').addEventListener('change', () => loadClientTasks());
+  async function loadClientTasks() {
+    const uid = document.getElementById('task-uid').value;
+    const el = document.getElementById('task-table');
+    if (!uid) { el.innerHTML = '<div class="empty">Pick a client above.</div>'; return; }
+    el.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const res = await call('listGenieScheduledTasks')({ uid });
+      const tasks = res.data.tasks || [];
+      if (!tasks.length) { el.innerHTML = '<div class="empty">Nothing scheduled for this client yet.</div>'; return; }
+      let html = '<table><tr><th>Title</th><th>Details</th><th>Status</th><th></th></tr>';
+      tasks.forEach(t => {
+        html += `<tr>
+          <td>${esc(t.title)}</td>
+          <td>${esc(t.details || '—')}</td>
+          <td><span class="pill ${t.status === 'done' ? 'on' : 'off'}">${esc(t.status || 'scheduled')}</span></td>
+          <td>
+            <select data-id="${t.id}" class="task-status-select" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:12.5px;">
+              <option value="scheduled" ${t.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
+              <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In progress</option>
+              <option value="done" ${t.status === 'done' ? 'selected' : ''}>Done</option>
+              <option value="blocked" ${t.status === 'blocked' ? 'selected' : ''}>Blocked</option>
+            </select>
+          </td>
+        </tr>`;
+      });
+      el.innerHTML = html + '</table>';
+      el.querySelectorAll('.task-status-select').forEach(sel => sel.addEventListener('change', async () => {
+        sel.disabled = true;
+        const t = tasks.find(x => x.id === sel.dataset.id);
+        try {
+          await call('queueGenieScheduledTask')({ uid, id: sel.dataset.id, title: t.title, details: t.details, status: sel.value });
+        } catch (e) { alert(e.message); }
+        sel.disabled = false;
+      }));
+    } catch (e) {
+      el.innerHTML = '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+    }
+  }
+  document.getElementById('task-queue').addEventListener('click', async () => {
+    const msg = document.getElementById('task-msg');
+    const uid = document.getElementById('task-uid').value;
+    const title = document.getElementById('task-title').value.trim();
+    if (!uid) { msg.textContent = 'Pick a client first.'; return; }
+    if (!title) { msg.textContent = 'Title is required.'; return; }
+    msg.textContent = 'Queuing…';
+    try {
+      await call('queueGenieScheduledTask')({
+        uid, title,
+        details: document.getElementById('task-details').value.trim(),
+        status: document.getElementById('task-status').value,
+      });
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-details').value = '';
+      msg.textContent = 'Queued.';
+      loadClientTasks();
     } catch (e) { msg.textContent = 'Error: ' + e.message; }
   });
 

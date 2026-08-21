@@ -194,6 +194,7 @@
       <button class="tab-btn active" data-tab="chat" onclick="switchTab('chat')">Chat</button>
       <button class="tab-btn" data-tab="live" onclick="switchTab('live')">Live View</button>
       <button class="tab-btn" data-tab="tasks" onclick="switchTab('tasks')">Scheduled Work</button>
+      <button class="tab-btn" data-tab="ideas" onclick="switchTab('ideas')">Growth Ideas</button>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div>
 
@@ -239,6 +240,15 @@
     <div class="tab-panel" id="panel-tasks">
       <div id="tasks-empty" class="center-msg" style="padding:20px 0;">Nothing scheduled yet.</div>
       <div class="task-list" id="task-list"></div>
+    </div>
+
+    <!-- GROWTH IDEAS TAB -->
+    <div class="tab-panel" id="panel-ideas">
+      <p class="sub" style="margin-bottom:14px;">Your Genie keeps a running list of ways to improve and grow the business — it updates automatically as it learns more about you, and you can also refresh it any time.</p>
+      <div id="ideas-empty" class="center-msg" style="padding:20px 0;">Loading ideas…</div>
+      <div class="task-list" id="ideas-list"></div>
+      <button class="btn-secondary" id="ideas-refresh-btn" onclick="refreshGrowthIdeas()">Refresh ideas</button>
+      <div class="save-msg" id="ideas-msg"></div>
     </div>
 
     <!-- SETTINGS TAB -->
@@ -326,6 +336,7 @@
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
     if (name === "tasks") loadScheduledTasks();
+    if (name === "ideas") loadGrowthIdeas();
   }
 
   const MASTER_EMAIL = "reachdavid.work@gmail.com";
@@ -363,6 +374,7 @@
       loadChatHistory();
       loadLearningQuestion();
       loadUploads();
+      loadGrowthIdeas();
     } catch (e) {
       show("state-no-account");
     }
@@ -535,6 +547,54 @@
         list.appendChild(div);
       });
     } catch (e) { /* non-fatal */ }
+  }
+
+  // ── Growth ideas ─────────────────────────────────────────────────────
+  function renderIdeas(ideas) {
+    const empty = document.getElementById("ideas-empty");
+    const list = document.getElementById("ideas-list");
+    list.innerHTML = "";
+    if (!ideas || !ideas.length) { empty.classList.remove("hidden"); empty.textContent = "No ideas yet — hit refresh below."; return; }
+    empty.classList.add("hidden");
+    ideas.forEach(idea => {
+      const div = document.createElement("div");
+      div.className = "task-item";
+      div.innerHTML =
+        "<div class='task-title'>💡 " + escapeHtml(idea.title) + "</div>" +
+        (idea.detail ? "<div class='task-details'>" + escapeHtml(idea.detail) + "</div>" : "");
+      list.appendChild(div);
+    });
+  }
+
+  async function loadGrowthIdeas() {
+    try {
+      const getGenieGrowthIdeas = functions.httpsCallable("getGenieGrowthIdeas");
+      const res = await getGenieGrowthIdeas();
+      renderIdeas(res.data.ideas || []);
+    } catch (e) {
+      document.getElementById("ideas-empty").textContent = "Couldn't load ideas yet.";
+    }
+  }
+
+  async function refreshGrowthIdeas() {
+    const btn = document.getElementById("ideas-refresh-btn");
+    const msg = document.getElementById("ideas-msg");
+    btn.disabled = true;
+    msg.style.color = "var(--faint)";
+    msg.textContent = "Thinking of fresh ideas…";
+    try {
+      const refreshGenieGrowthIdeas = functions.httpsCallable("refreshGenieGrowthIdeas");
+      const res = await refreshGenieGrowthIdeas();
+      renderIdeas(res.data.ideas || []);
+      msg.style.color = "var(--good)";
+      msg.textContent = "Updated.";
+      setTimeout(() => { msg.textContent = ""; }, 2500);
+    } catch (e) {
+      msg.style.color = "var(--bad)";
+      msg.textContent = "Couldn't refresh — try again.";
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   // ── Settings ──────────────────────────────────────────────────────────
