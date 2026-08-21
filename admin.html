@@ -291,7 +291,7 @@
           document.getElementById('ac-ip').focus();
           return;
         }
-        if (action === 'cancel' && !confirm('Cancel this customer\\'s subscription? This cannot be undone from here.')) return;
+        if (action === 'cancel' && !confirm("Cancel this customer's subscription? This cannot be undone from here.")) return;
         b.disabled = true;
         try {
           await call('setGenieCustomerStatus')({ subscriptionId: order.subscriptionId, action });
