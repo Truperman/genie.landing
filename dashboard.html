@@ -150,7 +150,10 @@
   .cal-dow{ font-size:11px; color:var(--faint); text-align:center; padding:2px 0; }
   .cal-day{ position:relative; aspect-ratio:1; border-radius:8px; border:1px solid var(--border); font-size:12px; padding:4px; cursor:default; color:var(--muted); }
   .cal-day.cal-empty{ border:none; }
-  .cal-day.cal-has-tasks{ cursor:pointer; border-color:var(--accent); background:oklch(0.7 0.1 260 / 0.1); }
+  .cal-day.cal-has-tasks{ border-color:var(--accent); background:oklch(0.7 0.1 260 / 0.1); }
+  .cal-day.cal-day-clickable{ cursor:pointer; }
+  .cal-day.cal-day-clickable:hover{ border-color:var(--accent-2); }
+  .cal-day.cal-day-selected{ box-shadow:inset 0 0 0 2px var(--accent); }
   .cal-day.cal-today{ box-shadow:inset 0 0 0 2px var(--accent-2); }
   .cal-dot{ position:absolute; bottom:4px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--accent-2); }
   .cal-day-tasks{ margin-top:12px; }
@@ -1011,27 +1014,75 @@
       const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
       const dayTasks = byDate[dateStr] || [];
       const el = document.createElement("div");
-      el.className = "cal-day" + (dayTasks.length ? " cal-has-tasks" : "") + (dateStr === todayStr ? " cal-today" : "");
+      el.className = "cal-day" + (dayTasks.length ? " cal-has-tasks" : "") + (dateStr === todayStr ? " cal-today" : "") + (dateStr === calSelectedDate ? " cal-day-selected" : "");
       el.textContent = day;
-      if (dayTasks.length) {
-        el.innerHTML += "<span class='cal-dot'></span>";
-        el.onclick = () => showCalDayTasks(dateStr, dayTasks, inst.dayTasks);
-      }
+      if (dayTasks.length) el.innerHTML += "<span class='cal-dot'></span>";
+      // Every day is clickable now — not just days that already have tasks —
+      // so a client can pick any date and tell genie what to do that day/time.
+      el.classList.add("cal-day-clickable");
+      el.onclick = () => selectCalDay(dateStr);
       grid.appendChild(el);
     }
+    // Re-paint the day-detail/add-task panel for this instance if a day is
+    // already selected (e.g. after a month re-render or a task save).
+    if (calSelectedDate) renderCalDayPanel(inst, calSelectedDate);
   }
 
-  function showCalDayTasks(dateStr, tasks, targetId) {
-    const wrap = document.getElementById(targetId || "cal-day-tasks");
+  // Shared across both calendar instances (Overview + Scheduled Work) so
+  // picking a day in one keeps the other in sync if the client switches tabs.
+  let calSelectedDate = null;
+
+  function selectCalDay(dateStr) {
+    calSelectedDate = dateStr;
+    renderCalendar();
+  }
+
+  function calTaskItemHtml(t) {
+    return "<div class='task-item' style='margin-bottom:8px;'>" +
+      "<div class='task-title'>" + escapeHtml(t.title) +
+      (t.scheduledTime ? " <span style='color:var(--faint); font-weight:400;'>@ " + escapeHtml(t.scheduledTime) + "</span>" : "") +
+      "</div>" +
+      (t.details ? "<div class='task-details'>" + escapeHtml(t.details) + "</div>" : "") +
+      "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>" +
+      "</div>";
+  }
+
+  function renderCalDayPanel(inst, dateStr) {
+    const wrap = document.getElementById(inst.dayTasks);
     if (!wrap) return;
-    wrap.innerHTML = "<div class='field-note' style='margin:0 0 8px;'><b>" + escapeHtml(dateStr) + "</b></div>" +
-      tasks.map(t =>
-        "<div class='task-item' style='margin-bottom:8px;'>" +
-        "<div class='task-title'>" + escapeHtml(t.title) + "</div>" +
-        (t.details ? "<div class='task-details'>" + escapeHtml(t.details) + "</div>" : "") +
-        "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>" +
-        "</div>"
-      ).join("");
+    const tasks = (tasksByDate()[dateStr] || []);
+    const uid = inst.dayTasks;
+    wrap.innerHTML =
+      "<div class='field-note' style='margin:0 0 8px;'><b>" + escapeHtml(dateStr) + "</b></div>" +
+      (tasks.length ? tasks.map(calTaskItemHtml).join("") : "<div class='field-note' style='margin:0 0 10px;'>Nothing scheduled yet for this day.</div>") +
+      "<div style='margin-top:10px; padding-top:12px; border-top:1px solid var(--border);'>" +
+      "<label style='font-size:12.5px; color:var(--faint); display:block; margin-bottom:6px;'>Tell genie what to do on " + escapeHtml(dateStr) + "</label>" +
+      "<input type='text' id='" + uid + "-title' placeholder='What should genie do?' style='margin-bottom:8px;' />" +
+      "<input type='time' id='" + uid + "-time' style='margin-bottom:8px;' />" +
+      "<textarea id='" + uid + "-details' placeholder='Any details (optional)' rows='2' style='margin-bottom:8px;'></textarea>" +
+      "<button class='btn-small' style='width:auto;' onclick='addCalTask(" + JSON.stringify(dateStr) + ", " + JSON.stringify(uid) + ")'>Add to schedule</button>" +
+      "<span id='" + uid + "-status' style='margin-left:10px; font-size:12.5px; color:var(--faint);'></span>" +
+      "</div>";
+  }
+
+  async function addCalTask(dateStr, uid) {
+    const titleEl = document.getElementById(uid + "-title");
+    const timeEl = document.getElementById(uid + "-time");
+    const detailsEl = document.getElementById(uid + "-details");
+    const statusEl = document.getElementById(uid + "-status");
+    const title = (titleEl.value || "").trim();
+    if (!title) { statusEl.textContent = "Type what you'd like genie to do first."; return; }
+    statusEl.textContent = "Saving…";
+    try {
+      const clientQueueScheduledTask = functions.httpsCallable("clientQueueScheduledTask");
+      await clientQueueScheduledTask({
+        title, details: detailsEl.value || "", scheduledFor: dateStr, scheduledTime: timeEl.value || "",
+      });
+      await loadScheduledTasks();
+      statusEl.textContent = "Added.";
+    } catch (e) {
+      statusEl.textContent = "Couldn't save — try again.";
+    }
   }
 
   // ── Growth ideas ─────────────────────────────────────────────────────
