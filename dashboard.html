@@ -92,6 +92,7 @@
   .msg{ max-width:85%; padding:9px 12px; border-radius:10px; font-size:13.5px; line-height:1.5; }
   .msg-user{ align-self:flex-end; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:var(--accent-ink); }
   .msg-assistant{ align-self:flex-start; background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
+  .msg-thinking{ opacity:0.6; font-style:italic; }
   .msg-empty{ color:var(--faint); font-size:13px; text-align:center; margin:auto; }
   .chat-input-row{ display:flex; gap:8px; margin-bottom:4px; }
   .chat-input-row textarea{ margin-bottom:0; flex:1; min-height:44px; max-height:110px; }
@@ -468,11 +469,18 @@
     userDiv.className = "msg msg-user";
     userDiv.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
     log.appendChild(userDiv);
+    const thinkingDiv = document.createElement("div");
+    thinkingDiv.className = "msg msg-assistant msg-thinking";
+    thinkingDiv.textContent = "Thinking…";
+    log.appendChild(thinkingDiv);
     log.scrollTop = log.scrollHeight;
     input.value = "";
     try {
-      const genieChatSend = functions.httpsCallable("genieChatSend");
+      // Real (droplet-routed) replies can take up to ~100s, well past the
+      // SDK's 70s default callable timeout — allow up to 170s.
+      const genieChatSend = functions.httpsCallable("genieChatSend", { timeout: 170000 });
       const res = await genieChatSend({ message: text });
+      thinkingDiv.remove();
       const replyDiv = document.createElement("div");
       replyDiv.className = "msg msg-assistant";
       replyDiv.innerHTML = escapeHtml(res.data.reply).replace(/\n/g, "<br>");
@@ -480,6 +488,7 @@
       log.scrollTop = log.scrollHeight;
       speakReply(res.data.reply);
     } catch (e) {
+      thinkingDiv.remove();
       err.textContent = "Couldn't send that — try again in a moment.";
     } finally {
       btn.disabled = false;
