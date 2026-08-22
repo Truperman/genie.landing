@@ -94,6 +94,13 @@
   .msg-assistant{ align-self:flex-start; background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
   .msg-thinking{ opacity:0.6; font-style:italic; }
   .msg-empty{ color:var(--faint); font-size:13px; text-align:center; margin:auto; }
+  .genie-avatar-row{ display:flex; justify-content:center; margin-bottom:10px; }
+  .genie-avatar-row iframe{ width:84px; height:84px; border:0; background:transparent; display:block; pointer-events:none; }
+  .genie-avatar-row.hidden{ display:none; }
+  .appearance-preview{ margin:10px 0 4px; display:flex; align-items:center; gap:14px; }
+  .appearance-preview iframe{ width:120px; height:120px; border:0; background:transparent; display:block; }
+  .appearance-preview .placeholder{ width:120px; height:120px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:12px; text-align:center; padding:10px; }
+  .appearance-preview .note{ font-size:12px; color:var(--faint); max-width:220px; }
   .chat-input-row{ display:flex; gap:8px; margin-bottom:4px; }
   .chat-input-row textarea{ margin-bottom:0; flex:1; min-height:44px; max-height:110px; }
   .chat-input-row button{ width:auto; padding:0 18px; }
@@ -217,6 +224,9 @@
         </div>
       </div>
 
+      <div class="genie-avatar-row hidden" id="genie-avatar-row">
+        <iframe id="genie-avatar" src="" title="Your Genie" loading="lazy" allowtransparency="true" scrolling="no"></iframe>
+      </div>
       <div class="chat-log" id="chat-log">
         <div class="msg-empty" id="chat-empty">Ask your Genie anything, or use the file button below to hand it something to work with.</div>
       </div>
@@ -270,11 +280,12 @@
         <option value="brisk-professional">Brisk, professional</option>
       </select>
       <h2>Appearance</h2>
-      <select id="pref-appearance">
-        <option value="classic-orb">Classic orb</option>
+      <select id="pref-appearance" onchange="updateAppearancePreview()">
+        <option value="classic-orb">Wireframe orb</option>
         <option value="minimal-icon">Minimal icon</option>
         <option value="friendly-avatar">Friendly avatar</option>
       </select>
+      <div class="appearance-preview" id="appearance-preview"></div>
       <h2>Language</h2>
       <select id="pref-language">
         <option value="en">English</option>
@@ -283,7 +294,7 @@
         <option value="de">Deutsch</option>
         <option value="pt">Português</option>
       </select>
-      <p class="field-note">Voice affects how your Genie sounds when you turn on "Read replies aloud" in the Chat tab, and which browser voice is picked for it. Language sets both that and the mic input language. Appearance will visibly change once we finish wiring it into the live desktop agent — for now this locks in your preference so it's ready the moment that ships.</p>
+      <p class="field-note">Voice affects how your Genie sounds when you turn on "Read replies aloud" in the Chat tab, and which browser voice is picked for it. Language sets both that and the mic input language. The wireframe orb is live — pick it and it shows up as your Genie's face in the Chat tab. The other two appearances are reserved for now; picking one just falls back to a plain placeholder until we build their graphics.</p>
       <button class="btn-primary" onclick="savePreferences()">Save preferences</button>
       <div class="save-msg" id="prefs-saved"></div>
     </div>
@@ -410,6 +421,7 @@
       document.getElementById("pref-language").value = data.language || "en";
       updateAutoReadButton();
       updateMicButton();
+      updateAppearancePreview();
       show("state-active");
       loadChatHistory();
       loadLearningQuestion();
@@ -549,6 +561,28 @@
     try { localStorage.setItem("genieAutoRead", autoReadEnabled ? "1" : "0"); } catch (e) { /* ignore */ }
     updateAutoReadButton();
     if (!autoReadEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  const GENIE_APPEARANCE_LABELS = {
+    "minimal-icon": "Minimal icon — coming soon",
+    "friendly-avatar": "Friendly avatar — coming soon",
+  };
+
+  function updateAppearancePreview() {
+    const val = document.getElementById("pref-appearance").value;
+    const box = document.getElementById("appearance-preview");
+    const avatarRow = document.getElementById("genie-avatar-row");
+    const avatarFrame = document.getElementById("genie-avatar");
+    if (!box) return;
+    if (val === "classic-orb") {
+      box.innerHTML = '<iframe src="orb.html" title="Genie appearance preview" loading="lazy" allowtransparency="true" scrolling="no"></iframe><span class="note">This is what your Genie looks like right now in the Chat tab.</span>';
+      if (avatarFrame) { if (!avatarFrame.getAttribute("src")) avatarFrame.setAttribute("src", "orb.html"); }
+      if (avatarRow) avatarRow.classList.remove("hidden");
+    } else {
+      const label = GENIE_APPEARANCE_LABELS[val] || "Not available yet";
+      box.innerHTML = '<div class="placeholder">' + label + '</div><span class="note">Pick "Wireframe orb" for the live version.</span>';
+      if (avatarRow) avatarRow.classList.add("hidden");
+    }
   }
 
   function voiceHintFor(pref) {
