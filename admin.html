@@ -58,6 +58,7 @@
   th{ text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; padding:8px 10px; border-bottom:1px solid var(--border); }
   td{ padding:10px; border-bottom:1px solid var(--border); vertical-align:top; }
   tr.row:hover{ background:var(--panel-2); cursor:pointer; }
+  .name-link{ background:none; border:none; padding:0; font:inherit; color:var(--accent); text-decoration:underline; cursor:pointer; }
   .pill{ display:inline-block; padding:2px 9px; border-radius:99px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
   .pill.on{ background:oklch(0.3 0.08 145 / 0.4); color:var(--good); }
   .pill.off{ background:oklch(0.3 0.02 273 / 0.6); color:var(--muted); }
@@ -104,7 +105,13 @@
 
   <div class="panel active" id="panel-customers">
     <div class="card">
+      <h3>Your own live dashboard</h3>
+      <p class="note">Not a real customer — a permanent sandbox account just for you, so you can always see and play with a live dashboard on demand. Uses the same test droplet you've been using (104.131.44.35).</p>
+      <button class="btn primary" style="margin-top:10px" id="preview-own-btn">Open my dashboard</button>
+    </div>
+    <div class="card">
       <h3>Genie customers</h3>
+      <p class="note">Click a customer's name to open their live dashboard in a new tab, exactly as they see it.</p>
       <div id="cust-table"><div class="empty">Loading…</div></div>
     </div>
   </div>
@@ -270,7 +277,8 @@
       if (!orders.length) { el.innerHTML = '<div class="empty">No Genie customers yet.</div>'; return; }
       let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th></th></tr>';
       orders.forEach((o, i) => {
-        html += `<tr class="row" data-i="${i}"><td>${esc(o.onboardPayload?.business || '—')}</td><td>${esc(o.email || '—')}</td>` +
+        const business = esc(o.onboardPayload?.business || o.email || '—');
+        html += `<tr class="row" data-i="${i}"><td><button class="name-link" data-preview-email="${esc(o.email || '')}">${business}</button></td><td>${esc(o.email || '—')}</td>` +
           `<td>${esc(o.tier || '—')}</td><td><span class="pill ${o.onboarded ? 'on' : 'off'}">${o.onboarded ? 'yes' : 'no'}</span></td>` +
           `<td>${o.subscriptionId ? '' : '<span class="note">no subscription</span>'}</td></tr>` +
           `<tr><td colspan="5" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>`;
@@ -278,6 +286,10 @@
       html += '</table>';
       el.innerHTML = html;
       el.querySelectorAll('tr.row').forEach(r => r.addEventListener('click', () => toggleDetail(r, orders[r.dataset.i])));
+      el.querySelectorAll('button[data-preview-email]').forEach(b => b.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+        previewClientByEmail(b.dataset.previewEmail);
+      }));
     } catch (e) {
       el.innerHTML = '<div class="empty">Could not load customers: ' + esc(e.message) + '</div>';
     }
@@ -331,6 +343,33 @@
     }
   }
 
+  // ── Live dashboard preview (shared) ──────────────────────
+  async function openClientPreview(uid, btn) {
+    if (btn) btn.disabled = true;
+    try {
+      const res = await call('adminGetClientPreviewToken')({ uid });
+      window.open('./dashboard.html#preview=' + encodeURIComponent(res.data.token), '_blank', 'noopener');
+    } catch (e) { alert(e.message); }
+    if (btn) btn.disabled = false;
+  }
+  function previewClientByEmail(email) {
+    const match = (taskClientsCache || []).find(c => (c.email || '').toLowerCase() === (email || '').toLowerCase());
+    if (!match) {
+      alert("This customer doesn't have a dashboard account yet — open their row and click \"Grant dashboard login…\" first (Dashboard Access tab), then try again.");
+      return;
+    }
+    openClientPreview(match.uid);
+  }
+  document.getElementById('preview-own-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('preview-own-btn');
+    btn.disabled = true;
+    try {
+      const res = await call('adminGetSandboxPreviewToken')();
+      window.open('./dashboard.html#preview=' + encodeURIComponent(res.data.token), '_blank', 'noopener');
+    } catch (e) { alert(e.message); }
+    btn.disabled = false;
+  });
+
   // ── Dashboard Access ────────────────────────────────────
   async function loadAccess() {
     const el = document.getElementById('access-table');
@@ -355,14 +394,7 @@
         </tr>`;
       });
       el.innerHTML = html + '</table>';
-      el.querySelectorAll('button[data-preview]').forEach(b => b.addEventListener('click', async () => {
-        b.disabled = true;
-        try {
-          const res = await call('adminGetClientPreviewToken')({ uid: b.dataset.uid });
-          window.open('./dashboard.html#preview=' + encodeURIComponent(res.data.token), '_blank', 'noopener');
-        } catch (e) { alert(e.message); }
-        b.disabled = false;
-      }));
+      el.querySelectorAll('button[data-preview]').forEach(b => b.addEventListener('click', () => openClientPreview(b.dataset.uid, b)));
       el.querySelectorAll('button[data-toggle]').forEach(b => b.addEventListener('click', async () => {
         b.disabled = true;
         try {
