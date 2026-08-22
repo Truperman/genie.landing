@@ -75,6 +75,31 @@
     100%{ transform:translate(-50%,-50%) scale(1); }
   }
   @media (prefers-reduced-motion: reduce){ .orb-bg{ animation:none; } .orb-glow{ animation:none; opacity:0.5; } }
+  /* ── cockpit framing: turns the ambient orb/lights into "looking out a
+     viewport" rather than a flat backdrop — a vignette that darkens the
+     edges (never the card, which sits centered), faint scanline texture
+     for a console/monitor feel, and four HUD-style corner brackets like a
+     targeting readout. All z-index:0, same layer as the orb/lights, so
+     the card (z-index:1) always renders crisp on top, untouched. ── */
+  .cockpit-frame{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .cockpit-vignette{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 145% 105% at 50% 48%, transparent 52%, rgba(2,3,6,0.7) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.4), transparent 14%, transparent 86%, rgba(0,0,0,0.45));
+  }
+  .cockpit-scanlines{
+    position:absolute; inset:-20px;
+    background:repeating-linear-gradient(0deg, rgba(180,220,255,0.5) 0px, rgba(180,220,255,0.5) 1px, transparent 1px, transparent 3px);
+    opacity:0.035; mix-blend-mode:overlay; animation:scanDrift 10s linear infinite;
+  }
+  @keyframes scanDrift{ 0%{ transform:translateY(0); } 100%{ transform:translateY(120px); } }
+  .cockpit-corner{ position:absolute; width:70px; height:70px; border:0 solid oklch(0.78 0.15 205 / 0.4); }
+  .cockpit-corner.tl{ top:20px; left:20px; border-top-width:2px; border-left-width:2px; border-radius:10px 0 0 0; }
+  .cockpit-corner.tr{ top:20px; right:20px; border-top-width:2px; border-right-width:2px; border-radius:0 10px 0 0; }
+  .cockpit-corner.bl{ bottom:20px; left:20px; border-bottom-width:2px; border-left-width:2px; border-radius:0 0 0 10px; }
+  .cockpit-corner.br{ bottom:20px; right:20px; border-bottom-width:2px; border-right-width:2px; border-radius:0 0 10px 0; }
+  @media (prefers-reduced-motion: reduce){ .cockpit-scanlines{ animation:none; } }
   .card{
     position:relative; z-index:1; width:100%; max-width:480px; background:var(--surface); border:1px solid var(--border);
     border-radius:16px; padding:32px;
@@ -148,8 +173,8 @@
   .msg-assistant{ align-self:flex-start; background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
   .msg-thinking{ opacity:0.6; font-style:italic; }
   .msg-empty{ color:var(--faint); font-size:13px; text-align:center; margin:auto; }
-  .genie-avatar-row{ display:flex; justify-content:center; margin-bottom:10px; }
-  .genie-avatar-row iframe{ width:84px; height:84px; border:0; background:transparent; display:block; pointer-events:none; }
+  .genie-avatar-row{ display:flex; justify-content:center; margin-bottom:8px; }
+  .genie-avatar-row iframe{ width:52px; height:52px; border:0; background:transparent; display:block; pointer-events:none; }
   .genie-avatar-row.hidden{ display:none; }
   .appearance-preview{ margin:10px 0 4px; display:flex; align-items:center; gap:14px; }
   .appearance-preview iframe{ width:120px; height:120px; border:0; background:transparent; display:block; }
@@ -242,6 +267,14 @@
   <div class="room-light-wrap" id="room-wrap-2"><span class="room-light l2"></span></div>
   <div class="room-light-wrap" id="room-wrap-3"><span class="room-light l3"></span></div>
   <span class="room-floor"></span>
+</div>
+<div class="cockpit-frame" aria-hidden="true">
+  <div class="cockpit-vignette"></div>
+  <div class="cockpit-scanlines"></div>
+  <div class="cockpit-corner tl"></div>
+  <div class="cockpit-corner tr"></div>
+  <div class="cockpit-corner bl"></div>
+  <div class="cockpit-corner br"></div>
 </div>
 <script>
   // Subtle mouse-parallax on the ambient room lights — each moves a
