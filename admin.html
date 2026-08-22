@@ -383,6 +383,7 @@
         <button class="btn small" style="margin-top:6px" data-no-row-toggle data-activate-email="${esc(order.email || '')}" data-activate-business="${esc(order.onboardPayload?.business || '')}" data-activate-tier="${order.tier === 'desktop' ? 'desktop' : 'chat'}">Activate dashboard</button>`;
     }
     return `<span class="pill ${client.dashboardAccess ? 'on' : 'off'}">${client.dashboardAccess ? 'ON' : 'OFF'}</span><br>
+      <button class="btn small" style="margin-top:6px" data-no-row-toggle data-uid="${client.uid}" data-preview="1">Open dashboard</button>
       <button class="btn small" style="margin-top:6px" data-no-row-toggle data-uid="${client.uid}" data-dash-toggle="${client.dashboardAccess ? 'off' : 'on'}">${client.dashboardAccess ? 'Turn off' : 'Turn on'}</button>`;
   }
 
@@ -395,6 +396,10 @@
   }
 
   function wireDashboardButtons(el, orders) {
+    el.querySelectorAll('button[data-preview]').forEach(b => b.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      openClientPreview(b.dataset.uid, b);
+    }));
     el.querySelectorAll('button[data-activate-email]').forEach(b => b.addEventListener('click', async (evt) => {
       evt.stopPropagation();
       b.disabled = true; b.textContent = 'Activating…';
