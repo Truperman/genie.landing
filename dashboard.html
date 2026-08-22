@@ -97,6 +97,9 @@
   .chat-input-row textarea{ margin-bottom:0; flex:1; min-height:44px; max-height:110px; }
   .chat-input-row button{ width:auto; padding:0 18px; }
   .chat-tools-row{ display:flex; gap:8px; align-items:center; margin:10px 0 4px; flex-wrap:wrap; }
+  .chat-tools-row button, #chat-mic-btn{ width:auto; margin-top:0; padding:6px 14px; }
+  #chat-mic-btn.mic-active{ background:#e5484d; border-color:#e5484d; color:#fff; }
+  #auto-read-btn.active{ background:var(--accent, #635bff); border-color:var(--accent, #635bff); color:#fff; }
   .file-label{
     display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--faint);
     border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer;
@@ -218,7 +221,8 @@
       </div>
       <div class="err" id="chat-err"></div>
       <div class="chat-input-row">
-        <textarea id="chat-input" placeholder="Message your Genie…" onkeydown="handleChatKey(event)"></textarea>
+        <textarea id="chat-input" placeholder="Message your Genie… or tap the mic" onkeydown="handleChatKey(event)"></textarea>
+        <button class="btn-secondary" id="chat-mic-btn" type="button" onclick="toggleMic()" title="Speak your message">🎤</button>
         <button class="btn-primary" id="chat-send-btn" onclick="sendChatMessage()">Send</button>
       </div>
       <div class="chat-tools-row">
@@ -226,6 +230,7 @@
           📎 Upload a file
           <input type="file" id="file-input" class="hidden" onchange="handleFileUpload(event)">
         </label>
+        <button class="btn-secondary" id="auto-read-btn" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
         <span class="field-note" style="margin:0;" id="upload-status"></span>
       </div>
       <div id="file-chips"></div>
@@ -277,7 +282,7 @@
         <option value="de">Deutsch</option>
         <option value="pt">Português</option>
       </select>
-      <p class="field-note">These choices are saved to your account now. Voice and appearance will visibly change once we finish wiring them into the live desktop agent — for now this locks in your preference so it's ready the moment that ships.</p>
+      <p class="field-note">Voice affects how your Genie sounds when you turn on "Read replies aloud" in the Chat tab, and which browser voice is picked for it. Language sets both that and the mic input language. Appearance will visibly change once we finish wiring it into the live desktop agent — for now this locks in your preference so it's ready the moment that ships.</p>
       <button class="btn-primary" onclick="savePreferences()">Save preferences</button>
       <div class="save-msg" id="prefs-saved"></div>
     </div>
@@ -402,6 +407,8 @@
       document.getElementById("pref-voice").value = data.voice || "warm-neutral";
       document.getElementById("pref-appearance").value = data.appearance || "classic-orb";
       document.getElementById("pref-language").value = data.language || "en";
+      updateAutoReadButton();
+      updateMicButton();
       show("state-active");
       loadChatHistory();
       loadLearningQuestion();
@@ -471,11 +478,97 @@
       replyDiv.innerHTML = escapeHtml(res.data.reply).replace(/\n/g, "<br>");
       log.appendChild(replyDiv);
       log.scrollTop = log.scrollHeight;
+      speakReply(res.data.reply);
     } catch (e) {
       err.textContent = "Couldn't send that — try again in a moment.";
     } finally {
       btn.disabled = false;
     }
+  }
+
+  // ── Voice: speak-to-chat (speech-to-text) ───────────────────────────
+  function langCodeFor(pref) {
+    return ({ en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR" })[pref] || "en-US";
+  }
+
+  let recognition = null;
+  let recognizing = false;
+
+  function updateMicButton() {
+    const btn = document.getElementById("chat-mic-btn");
+    if (!btn) return;
+    btn.classList.toggle("mic-active", recognizing);
+    btn.textContent = recognizing ? "⏹️" : "🎤";
+  }
+
+  function toggleMic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("Voice input isn't supported in this browser — try Chrome on desktop or Android."); return; }
+    if (recognizing && recognition) { recognition.stop(); return; }
+    recognition = new SR();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = langCodeFor((document.getElementById("pref-language") || {}).value || "en");
+    recognition.onresult = (evt) => {
+      const transcript = evt.results[0][0].transcript;
+      const input = document.getElementById("chat-input");
+      input.value = (input.value ? input.value.trim() + " " : "") + transcript;
+      sendChatMessage();
+    };
+    recognition.onerror = () => { recognizing = false; updateMicButton(); };
+    recognition.onend = () => { recognizing = false; updateMicButton(); };
+    try {
+      recognition.start();
+      recognizing = true;
+      updateMicButton();
+    } catch (e) { recognizing = false; updateMicButton(); }
+  }
+
+  // ── Voice: read replies aloud (text-to-speech) ──────────────────────
+  let autoReadEnabled = false;
+  try { autoReadEnabled = localStorage.getItem("genieAutoRead") === "1"; } catch (e) { /* ignore */ }
+
+  function updateAutoReadButton() {
+    const btn = document.getElementById("auto-read-btn");
+    if (!btn) return;
+    btn.classList.toggle("active", autoReadEnabled);
+    btn.textContent = autoReadEnabled ? "🔊 Reading replies aloud" : "🔇 Read replies aloud";
+  }
+
+  function toggleAutoRead() {
+    autoReadEnabled = !autoReadEnabled;
+    try { localStorage.setItem("genieAutoRead", autoReadEnabled ? "1" : "0"); } catch (e) { /* ignore */ }
+    updateAutoReadButton();
+    if (!autoReadEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  function voiceHintFor(pref) {
+    return ({ "calm-male": "male", "bright-female": "female" })[pref] || null;
+  }
+
+  function pickTtsVoice() {
+    if (!window.speechSynthesis) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    if (!voices.length) return null;
+    const lang = langCodeFor((document.getElementById("pref-language") || {}).value || "en");
+    const hint = voiceHintFor((document.getElementById("pref-voice") || {}).value || "warm-neutral");
+    let pool = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(lang.slice(0, 2)));
+    if (!pool.length) pool = voices;
+    if (hint) {
+      const byHint = pool.find(v => v.name.toLowerCase().includes(hint));
+      if (byHint) return byHint;
+    }
+    return pool[0] || voices[0] || null;
+  }
+
+  function speakReply(text) {
+    if (!autoReadEnabled || !window.speechSynthesis || !text) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voice = pickTtsVoice();
+    if (voice) utter.voice = voice;
+    utter.lang = langCodeFor((document.getElementById("pref-language") || {}).value || "en");
+    window.speechSynthesis.speak(utter);
   }
 
   // ── File uploads ─────────────────────────────────────────────────────
