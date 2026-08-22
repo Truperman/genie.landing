@@ -22,11 +22,35 @@
     --bad: oklch(0.68 0.19 25);
   }
   *{ box-sizing:border-box; }
-  body{ margin:0; min-height:100vh; color:var(--ink); background:var(--bg);
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  body{ margin:0; min-height:100vh; color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    position:relative; overflow-x:hidden;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, oklch(0.16 0.02 273 / 0.9), transparent 70%),
+      radial-gradient(ellipse 140% 90% at 50% 100%, rgba(0,0,0,0.7), transparent 60%),
+      linear-gradient(180deg, var(--bg-2) 0%, oklch(0.06 0.007 273) 45%, oklch(0.03 0.007 273) 100%);
+  }
+  /* ── ambient room: same "huge dim empty space with drifting thinking
+     lights" background as the client dashboard, so every screen in this
+     product feels like one consistent space. See dashboard.html for the
+     fuller writeup of why it's built as two composited transform layers. ── */
+  .room-lights{ position:fixed; inset:0; overflow:hidden; pointer-events:none; perspective:1000px; z-index:0; }
+  .room-light-wrap{ position:absolute; inset:0; transition:transform 1.1s cubic-bezier(.2,.6,.2,1); will-change:transform; }
+  .room-light{ position:absolute; border-radius:50%; will-change:opacity,transform; animation:roomPulse ease-in-out infinite; }
+  .room-light.l1{ width:480px; height:480px; top:-150px; left:4%; filter:blur(85px); background:radial-gradient(circle, oklch(0.54 0.16 255 / 0.6), transparent 72%); animation-duration:14s; animation-delay:0s; }
+  .room-light.l2{ width:420px; height:420px; top:16%; right:2%; filter:blur(115px); background:radial-gradient(circle, oklch(0.52 0.13 190 / 0.42), transparent 72%); animation-duration:18s; animation-delay:-6s; }
+  .room-light.l3{ width:560px; height:560px; bottom:-190px; left:30%; filter:blur(140px); background:radial-gradient(circle, oklch(0.46 0.12 300 / 0.32), transparent 72%); animation-duration:22s; animation-delay:-11s; }
+  .room-floor{ position:absolute; inset:0; background:radial-gradient(ellipse 130% 80% at 50% 115%, rgba(255,255,255,0.05), transparent 60%); }
+  @keyframes roomPulse{
+    0%{ opacity:0.22; transform:translate(0,0) scale(1); }
+    30%{ opacity:0.46; transform:translate(3vw,-2vh) scale(1.07); }
+    62%{ opacity:0.3; transform:translate(-2.5vw,2vh) scale(0.96); }
+    100%{ opacity:0.22; transform:translate(0,0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){ .room-light{ animation:none; opacity:0.32; } .room-light-wrap{ transition:none; transform:none !important; } }
   h1,h2,h3{ font-family:'Fraunces',Georgia,serif; font-weight:480; letter-spacing:-0.02em; margin:0; }
   a{ color:inherit; }
-  .wrap{ max-width:1080px; margin:0 auto; padding:32px 20px 80px; }
+  .wrap{ position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:32px 20px 80px; }
   .topbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 0 24px; border-bottom:1px solid var(--border); margin-bottom:28px; }
   .brand{ font-family:'Fraunces',serif; font-size:18px; font-weight:560; }
   .brand span{ color:var(--accent); }
@@ -39,7 +63,7 @@
   .btn:disabled{ opacity:0.5; cursor:default; }
   .btn.small{ padding:5px 10px; font-size:12px; }
 
-  #signin{ max-width:380px; margin:14vh auto 0; text-align:center; }
+  #signin{ position:relative; z-index:1; max-width:380px; margin:14vh auto 0; text-align:center; }
   #signin input{ width:100%; margin-top:12px; padding:11px 13px; border-radius:8px; border:1px solid var(--border);
     background:var(--panel); color:var(--ink); font-family:inherit; font-size:14px; }
   #signin .btn{ width:100%; margin-top:16px; padding:11px; }
@@ -80,6 +104,37 @@
 </style>
 </head>
 <body>
+
+<div class="room-lights" aria-hidden="true">
+  <div class="room-light-wrap" id="room-wrap-1"><span class="room-light l1"></span></div>
+  <div class="room-light-wrap" id="room-wrap-2"><span class="room-light l2"></span></div>
+  <div class="room-light-wrap" id="room-wrap-3"><span class="room-light l3"></span></div>
+  <span class="room-floor"></span>
+</div>
+<script>
+  // Same mouse-parallax as the client dashboard's ambient room — see that
+  // file for the fuller comment. Skipped for reduced-motion/coarse-pointer.
+  (function () {
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+    if (reduceMotion || !hasFinePointer) return;
+    const wraps = [
+      { el: document.getElementById("room-wrap-1"), depth: 24 },
+      { el: document.getElementById("room-wrap-2"), depth: -32 },
+      { el: document.getElementById("room-wrap-3"), depth: 16 },
+    ].filter(w => w.el);
+    let raf = null;
+    window.addEventListener("mousemove", (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+        const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+        wraps.forEach(w => { w.el.style.transform = "translate3d(" + (nx * w.depth).toFixed(1) + "px," + (ny * w.depth).toFixed(1) + "px,0)"; });
+      });
+    });
+  })();
+</script>
 
 <div id="signin">
   <h1>Super Agent <span>Admin</span></h1>
@@ -272,30 +327,105 @@
   }));
 
   // ── Customers ───────────────────────────────────────────
+  // Skills = the individual features an admin can flip on/off per client
+  // (separate from the master dashboardAccess on/off switch below, which
+  // gates the whole dashboard at once). Defaults are all-true so existing
+  // clients are unaffected until an admin explicitly turns one off.
+  const SKILLS = [
+    { key: 'chat', label: 'Chat' },
+    { key: 'voice', label: 'Voice' },
+    { key: 'liveView', label: 'Live View' },
+    { key: 'fileUpload', label: 'Files' },
+    { key: 'scheduledWork', label: 'Scheduled Work' },
+    { key: 'growthIdeas', label: 'Growth Ideas' },
+  ];
+  let customersClientsByEmail = {};
+
   async function loadCustomers() {
     const el = document.getElementById('cust-table');
     try {
-      const res = await call('getGenieOrders')();
-      const orders = res.data.orders || [];
+      const [ordersRes, clientsRes] = await Promise.all([call('getGenieOrders')(), call('listGenieClients')()]);
+      const orders = ordersRes.data.orders || [];
+      const clients = clientsRes.data.clients || [];
+      customersClientsByEmail = {};
+      clients.forEach(c => { if (c.email) customersClientsByEmail[c.email.toLowerCase()] = c; });
       if (!orders.length) { el.innerHTML = '<div class="empty">No Genie customers yet.</div>'; return; }
-      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th></th></tr>';
+      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th>Dashboard</th><th>Skills &amp; access</th></tr>';
       orders.forEach((o, i) => {
         const business = esc(o.onboardPayload?.business || o.email || '—');
+        const client = customersClientsByEmail[(o.email || '').toLowerCase()];
         html += `<tr class="row" data-i="${i}"><td><button class="name-link" data-preview-email="${esc(o.email || '')}">${business}</button></td><td>${esc(o.email || '—')}</td>` +
           `<td>${esc(o.tier || '—')}</td><td><span class="pill ${o.onboarded ? 'on' : 'off'}">${o.onboarded ? 'yes' : 'no'}</span></td>` +
-          `<td>${o.subscriptionId ? '' : '<span class="note">no subscription</span>'}</td></tr>` +
-          `<tr><td colspan="5" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>`;
+          `<td>${dashboardCellHtml(client, o)}</td>` +
+          `<td>${skillsCellHtml(client)}</td></tr>` +
+          `<tr><td colspan="6" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>`;
       });
       html += '</table>';
       el.innerHTML = html;
-      el.querySelectorAll('tr.row').forEach(r => r.addEventListener('click', () => toggleDetail(r, orders[r.dataset.i])));
+      el.querySelectorAll('tr.row').forEach(r => r.addEventListener('click', (evt) => {
+        if (evt.target.closest('[data-no-row-toggle]')) return; // clicks inside Dashboard/Skills cells don't expand the row
+        toggleDetail(r, orders[r.dataset.i]);
+      }));
       el.querySelectorAll('button[data-preview-email]').forEach(b => b.addEventListener('click', (evt) => {
         evt.stopPropagation();
         previewClientByEmail(b.dataset.previewEmail);
       }));
+      wireDashboardButtons(el, orders);
+      wireSkillChips(el);
     } catch (e) {
       el.innerHTML = '<div class="empty">Could not load customers: ' + esc(e.message) + '</div>';
     }
+  }
+
+  function dashboardCellHtml(client, order) {
+    if (!client) {
+      return `<span class="pill off">not set up</span><br>
+        <button class="btn small" style="margin-top:6px" data-no-row-toggle data-activate-email="${esc(order.email || '')}" data-activate-business="${esc(order.onboardPayload?.business || '')}" data-activate-tier="${order.tier === 'desktop' ? 'desktop' : 'chat'}">Activate dashboard</button>`;
+    }
+    return `<span class="pill ${client.dashboardAccess ? 'on' : 'off'}">${client.dashboardAccess ? 'ON' : 'OFF'}</span><br>
+      <button class="btn small" style="margin-top:6px" data-no-row-toggle data-uid="${client.uid}" data-dash-toggle="${client.dashboardAccess ? 'off' : 'on'}">${client.dashboardAccess ? 'Turn off' : 'Turn on'}</button>`;
+  }
+
+  function skillsCellHtml(client) {
+    if (!client) return '<span class="note">Activate dashboard first</span>';
+    const skills = Object.assign({ chat: true, voice: true, liveView: true, fileUpload: true, scheduledWork: true, growthIdeas: true }, client.skills || {});
+    return '<div data-no-row-toggle style="display:flex; flex-wrap:wrap; gap:6px;">' + SKILLS.map(s =>
+      `<button class="pill skill-chip ${skills[s.key] !== false ? 'on' : 'off'}" style="border:none; cursor:pointer;" data-uid="${client.uid}" data-skill-key="${s.key}" data-skill-value="${skills[s.key] !== false ? 'false' : 'true'}" title="Click to turn ${skills[s.key] !== false ? 'off' : 'on'}">${s.label}</button>`
+    ).join('') + '</div>';
+  }
+
+  function wireDashboardButtons(el, orders) {
+    el.querySelectorAll('button[data-activate-email]').forEach(b => b.addEventListener('click', async (evt) => {
+      evt.stopPropagation();
+      b.disabled = true; b.textContent = 'Activating…';
+      try {
+        await call('createGenieClientAccount')({
+          email: b.dataset.activateEmail,
+          business: b.dataset.activateBusiness,
+          tier: b.dataset.activateTier,
+        });
+        loadCustomers();
+      } catch (e) { alert(e.message); b.disabled = false; b.textContent = 'Activate dashboard'; }
+    }));
+    el.querySelectorAll('button[data-dash-toggle]').forEach(b => b.addEventListener('click', async (evt) => {
+      evt.stopPropagation();
+      b.disabled = true;
+      try {
+        await call('setGenieClientAccess')({ uid: b.dataset.uid, active: b.dataset.dashToggle === 'on' });
+        loadCustomers();
+      } catch (e) { alert(e.message); b.disabled = false; }
+    }));
+  }
+
+  function wireSkillChips(el) {
+    el.querySelectorAll('button.skill-chip').forEach(b => b.addEventListener('click', async (evt) => {
+      evt.stopPropagation();
+      b.disabled = true;
+      try {
+        await call('setGenieClientSkills')({ uid: b.dataset.uid, skills: { [b.dataset.skillKey]: b.dataset.skillValue === 'true' } });
+        loadCustomers();
+      } catch (e) { alert(e.message); b.disabled = false; }
+    }));
   }
 
   async function toggleDetail(rowEl, order) {

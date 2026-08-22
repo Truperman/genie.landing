@@ -296,12 +296,19 @@
     <p class="notes" id="active-notes"></p>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="chat" onclick="switchTab('chat')">Chat</button>
+      <button class="tab-btn" data-tab="home" onclick="switchTab('home')">Home</button>
+      <button class="tab-btn active" data-tab="chat" data-skill="chat" onclick="switchTab('chat')">Chat</button>
       <button class="tab-btn" data-tab="overview" onclick="switchTab('overview')">Overview</button>
-      <button class="tab-btn" data-tab="live" onclick="switchTab('live')">Live View</button>
-      <button class="tab-btn" data-tab="tasks" onclick="switchTab('tasks')">Scheduled Work</button>
-      <button class="tab-btn" data-tab="ideas" onclick="switchTab('ideas')">Growth Ideas</button>
+      <button class="tab-btn" data-tab="live" data-skill="liveView" onclick="switchTab('live')">Live View</button>
+      <button class="tab-btn" data-tab="tasks" data-skill="scheduledWork" onclick="switchTab('tasks')">Scheduled Work</button>
+      <button class="tab-btn" data-tab="ideas" data-skill="growthIdeas" onclick="switchTab('ideas')">Growth Ideas</button>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    </div>
+
+    <!-- HOME TAB — the public landing page, always reachable from inside the dashboard -->
+    <div class="tab-panel" id="panel-home">
+      <p class="sub" style="margin-bottom:14px;">The main Genie site — same page anyone lands on from outside.</p>
+      <iframe src="/index.html" title="Genie — Home" loading="lazy" style="width:100%; height:70vh; border:0; border-radius:12px; background:#040507;"></iframe>
     </div>
 
     <!-- CHAT TAB -->
@@ -325,25 +332,25 @@
       <div class="err" id="chat-err"></div>
       <div class="chat-input-row">
         <textarea id="chat-input" placeholder="Message your Genie… or tap the mic" onkeydown="handleChatKey(event)"></textarea>
-        <button class="btn-secondary js-mic-btn" id="chat-mic-btn" type="button" onclick="toggleMic()" title="Speak your message">🎤</button>
+        <button class="btn-secondary js-mic-btn" id="chat-mic-btn" data-skill="voice" type="button" onclick="toggleMic()" title="Speak your message">🎤</button>
         <button class="btn-primary" id="chat-send-btn" onclick="sendChatMessage()">Send</button>
       </div>
       <div class="chat-tools-row">
-        <label class="file-label">
+        <label class="file-label" data-skill="fileUpload">
           📎 Upload a file
           <input type="file" id="file-input" class="hidden" onchange="handleFileUpload(event)">
         </label>
-        <button class="btn-secondary js-auto-read-btn" id="auto-read-btn" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
-        <span class="field-note" style="margin:0;" id="upload-status"></span>
+        <button class="btn-secondary js-auto-read-btn" id="auto-read-btn" data-skill="voice" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
+        <span class="field-note" style="margin:0;" id="upload-status" data-skill="fileUpload"></span>
       </div>
-      <div class="file-chips-target" id="file-chips"></div>
+      <div class="file-chips-target" id="file-chips" data-skill="fileUpload"></div>
     </div>
 
     <!-- OVERVIEW TAB -->
     <div class="tab-panel" id="panel-overview">
       <p class="sub" style="margin-bottom:18px;">Everything about your Genie in one place — files, voice, how it looks, and what it's working on.</p>
 
-      <div class="overview-section">
+      <div class="overview-section" data-skill="fileUpload">
         <h2>Files</h2>
         <label class="file-label">
           📎 Upload a file
@@ -353,7 +360,7 @@
         <div class="file-chips-target" id="file-chips-overview"></div>
       </div>
 
-      <div class="overview-section">
+      <div class="overview-section" data-skill="voice">
         <h2>Voice</h2>
         <div class="row" style="gap:10px;">
           <button class="btn-secondary js-mic-btn" id="ov-mic-btn" type="button" onclick="switchTab('chat'); toggleMic();">🎤 Voice input (mic)</button>
@@ -381,13 +388,13 @@
         <p class="field-note">Changes here save immediately — no need to hit Save. The graphic and background also show up together in the Chat tab and in Settings.</p>
       </div>
 
-      <div class="overview-section">
+      <div class="overview-section" data-skill="scheduledWork">
         <h2>To-dos</h2>
         <div id="overview-todo-empty" class="center-msg" style="padding:14px 0;">Nothing scheduled yet.</div>
         <div id="overview-todo-list"></div>
       </div>
 
-      <div class="overview-section">
+      <div class="overview-section" data-skill="scheduledWork">
         <h2>Work calendar</h2>
         <div class="cal-wrap">
           <div class="cal-head">
@@ -548,6 +555,24 @@
     if (name === "overview") { loadScheduledTasks(); loadUploads(); }
   }
 
+  // ── Skills & access gating ──────────────────────────────────────────
+  // Admin can turn individual features off per client (admin.html "Skills &
+  // access" toggles). Every element tagged data-skill="<key>" gets hidden
+  // when that skill is off; if the tab a client is currently sitting on
+  // just got hidden out from under them, fall back to Chat (or Home, if
+  // even chat is off).
+  function applySkillGates(skills) {
+    const s = Object.assign({ chat: true, voice: true, liveView: true, fileUpload: true, scheduledWork: true, growthIdeas: true }, skills || {});
+    document.querySelectorAll("[data-skill]").forEach(el => {
+      el.classList.toggle("hidden", s[el.dataset.skill] === false);
+    });
+    const activeBtn = document.querySelector(".tab-btn.active");
+    if (activeBtn && activeBtn.classList.contains("hidden")) {
+      const fallback = document.querySelector(".tab-btn[data-tab='chat']:not(.hidden)") || document.querySelector(".tab-btn[data-tab='home']");
+      if (fallback) switchTab(fallback.dataset.tab);
+    }
+  }
+
   const MASTER_EMAIL = "reachdavid.work@gmail.com";
 
   auth.onAuthStateChanged(async (user) => {
@@ -585,6 +610,7 @@
       document.getElementById("ov-pref-appearance").value = data.appearance || "classic-orb";
       document.getElementById("pref-language").value = data.language || "en";
       currentBackground = data.background || "midnight";
+      applySkillGates(data.skills);
       updateAutoReadButton();
       updateMicButton();
       updateAppearancePreview();
