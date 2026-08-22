@@ -22,14 +22,30 @@
     --bad: #ff9a9a;
   }
   *{box-sizing:border-box;}
+  html{ background:#040507; }
   body{
-    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    margin:0; min-height:100vh; color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Inter",Helvetica Neue,Arial,sans-serif;
     display:flex; align-items:center; justify-content:center; padding:24px;
+    position:relative; overflow-x:hidden;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, oklch(0.16 0.02 273 / 0.9), transparent 70%),
+      radial-gradient(ellipse 140% 90% at 50% 100%, rgba(0,0,0,0.7), transparent 60%),
+      linear-gradient(180deg, #0a0c11 0%, #06070a 45%, #030405 100%);
   }
+  /* ── ambient room: ONE huge dim empty space with a few slow, softly
+     pulsing "thinking" lights far in the background, behind every card ── */
+  .room-lights{ position:fixed; inset:0; overflow:hidden; pointer-events:none; }
+  .room-light{ position:absolute; border-radius:50%; filter:blur(100px); will-change:opacity,transform; animation:roomPulse 11s ease-in-out infinite; }
+  .room-light.l1{ width:460px; height:460px; top:-140px; left:6%; background:radial-gradient(circle, oklch(0.5 0.15 255 / 0.55), transparent 72%); animation-delay:0s; }
+  .room-light.l2{ width:400px; height:400px; top:18%; right:4%; background:radial-gradient(circle, oklch(0.52 0.13 190 / 0.5), transparent 72%); animation-delay:-4s; animation-duration:13s; }
+  .room-light.l3{ width:500px; height:500px; bottom:-160px; left:32%; background:radial-gradient(circle, oklch(0.48 0.13 300 / 0.45), transparent 72%); animation-delay:-8s; animation-duration:15s; }
+  .room-floor{ position:absolute; inset:0; background:radial-gradient(ellipse 130% 80% at 50% 115%, rgba(255,255,255,0.05), transparent 60%); }
+  @keyframes roomPulse{ 0%,100%{ opacity:0.28; transform:scale(1); } 50%{ opacity:0.5; transform:scale(1.08); } }
+  @media (prefers-reduced-motion: reduce){ .room-light{ animation:none; opacity:0.35; } }
   .card{
-    width:100%; max-width:480px; background:var(--surface); border:1px solid var(--border);
-    border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.4);
+    position:relative; width:100%; max-width:480px; background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.02);
     transition:max-width .15s;
   }
   .card.wide{ max-width:720px; }
@@ -101,6 +117,33 @@
   .appearance-preview iframe{ width:120px; height:120px; border:0; background:transparent; display:block; }
   .appearance-preview .placeholder{ width:120px; height:120px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:12px; text-align:center; padding:10px; }
   .appearance-preview .note{ font-size:12px; color:var(--faint); max-width:220px; }
+  .overview-section{ margin-bottom:28px; }
+  .overview-section h2{ margin-bottom:10px; }
+  .bg-swatches{ display:flex; gap:10px; flex-wrap:wrap; }
+  .bg-swatch{ width:36px; height:36px; border-radius:50%; border:2px solid var(--border); cursor:pointer; padding:0; }
+  .bg-swatch.selected{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-2); }
+  .bg-swatch-midnight{ background:linear-gradient(135deg,#0b0d10,#1a2233); }
+  .bg-swatch-aurora{ background:linear-gradient(135deg,#0f2e2b,#1e3a5f,#3a2f5f); }
+  .bg-swatch-sunset{ background:linear-gradient(135deg,#2e1a10,#5f2f1e,#5f3a1e); }
+  .bg-swatch-plain{ background:#141414; }
+  .genie-avatar-row.bg-aurora, .appearance-preview iframe.bg-aurora{ background:linear-gradient(135deg,#0f2e2b,#1e3a5f,#3a2f5f); border-radius:50%; }
+  .genie-avatar-row.bg-sunset, .appearance-preview iframe.bg-sunset{ background:linear-gradient(135deg,#2e1a10,#5f2f1e,#5f3a1e); border-radius:50%; }
+  .genie-avatar-row.bg-plain, .appearance-preview iframe.bg-plain{ background:#141414; border-radius:50%; }
+  .todo-row{ display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+  .todo-row.todo-done{ opacity:0.55; }
+  .todo-row.todo-done .todo-title{ text-decoration:line-through; }
+  .todo-title{ flex:1; font-size:13.5px; }
+  .cal-wrap{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cal-head button{ width:auto; padding:4px 12px; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-dow{ font-size:11px; color:var(--faint); text-align:center; padding:2px 0; }
+  .cal-day{ position:relative; aspect-ratio:1; border-radius:8px; border:1px solid var(--border); font-size:12px; padding:4px; cursor:default; color:var(--muted); }
+  .cal-day.cal-empty{ border:none; }
+  .cal-day.cal-has-tasks{ cursor:pointer; border-color:var(--accent); background:oklch(0.7 0.1 260 / 0.1); }
+  .cal-day.cal-today{ box-shadow:inset 0 0 0 2px var(--accent-2); }
+  .cal-dot{ position:absolute; bottom:4px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--accent-2); }
+  .cal-day-tasks{ margin-top:12px; }
   .chat-input-row{ display:flex; gap:8px; margin-bottom:4px; }
   .chat-input-row textarea{ margin-bottom:0; flex:1; min-height:44px; max-height:110px; }
   .chat-input-row button{ width:auto; padding:0 18px; }
@@ -148,6 +191,13 @@
 </style>
 </head>
 <body>
+
+<div class="room-lights" aria-hidden="true">
+  <span class="room-light l1"></span>
+  <span class="room-light l2"></span>
+  <span class="room-light l3"></span>
+  <span class="room-floor"></span>
+</div>
 
 <div class="card" id="main-card">
   <div class="brand"><span class="brand-dot"></span><span class="brand-name">GENIE</span></div>
@@ -206,6 +256,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="chat" onclick="switchTab('chat')">Chat</button>
+      <button class="tab-btn" data-tab="overview" onclick="switchTab('overview')">Overview</button>
       <button class="tab-btn" data-tab="live" onclick="switchTab('live')">Live View</button>
       <button class="tab-btn" data-tab="tasks" onclick="switchTab('tasks')">Scheduled Work</button>
       <button class="tab-btn" data-tab="ideas" onclick="switchTab('ideas')">Growth Ideas</button>
@@ -233,7 +284,7 @@
       <div class="err" id="chat-err"></div>
       <div class="chat-input-row">
         <textarea id="chat-input" placeholder="Message your Genie… or tap the mic" onkeydown="handleChatKey(event)"></textarea>
-        <button class="btn-secondary" id="chat-mic-btn" type="button" onclick="toggleMic()" title="Speak your message">🎤</button>
+        <button class="btn-secondary js-mic-btn" id="chat-mic-btn" type="button" onclick="toggleMic()" title="Speak your message">🎤</button>
         <button class="btn-primary" id="chat-send-btn" onclick="sendChatMessage()">Send</button>
       </div>
       <div class="chat-tools-row">
@@ -241,10 +292,72 @@
           📎 Upload a file
           <input type="file" id="file-input" class="hidden" onchange="handleFileUpload(event)">
         </label>
-        <button class="btn-secondary" id="auto-read-btn" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
+        <button class="btn-secondary js-auto-read-btn" id="auto-read-btn" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
         <span class="field-note" style="margin:0;" id="upload-status"></span>
       </div>
-      <div id="file-chips"></div>
+      <div class="file-chips-target" id="file-chips"></div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel" id="panel-overview">
+      <p class="sub" style="margin-bottom:18px;">Everything about your Genie in one place — files, voice, how it looks, and what it's working on.</p>
+
+      <div class="overview-section">
+        <h2>Files</h2>
+        <label class="file-label">
+          📎 Upload a file
+          <input type="file" id="file-input-overview" class="hidden" onchange="handleFileUpload(event)">
+        </label>
+        <span class="field-note" style="margin:6px 0 10px;" id="upload-status-overview"></span>
+        <div class="file-chips-target" id="file-chips-overview"></div>
+      </div>
+
+      <div class="overview-section">
+        <h2>Voice</h2>
+        <div class="row" style="gap:10px;">
+          <button class="btn-secondary js-mic-btn" id="ov-mic-btn" type="button" onclick="switchTab('chat'); toggleMic();">🎤 Voice input (mic)</button>
+          <button class="btn-secondary js-auto-read-btn" id="ov-auto-read-btn" type="button" onclick="toggleAutoRead()">🔇 Read replies aloud</button>
+        </div>
+        <p class="field-note" style="margin-top:8px;">The mic listens for your next message in the Chat tab. "Read replies aloud" speaks every reply out loud from here on, in any tab.</p>
+      </div>
+
+      <div class="overview-section">
+        <h2>Appearance & background</h2>
+        <div class="row" style="gap:14px; flex-wrap:wrap;">
+          <select id="ov-pref-appearance" onchange="onOverviewAppearanceChange()" style="max-width:220px;">
+            <option value="classic-orb">Wireframe orb</option>
+            <option value="minimal-icon">Minimal icon</option>
+            <option value="friendly-avatar">Friendly avatar</option>
+          </select>
+          <div class="bg-swatches" id="bg-swatches">
+            <button type="button" class="bg-swatch bg-swatch-midnight" data-bg="midnight" onclick="onBackgroundPick('midnight')" title="Midnight (default)"></button>
+            <button type="button" class="bg-swatch bg-swatch-aurora" data-bg="aurora" onclick="onBackgroundPick('aurora')" title="Aurora"></button>
+            <button type="button" class="bg-swatch bg-swatch-sunset" data-bg="sunset" onclick="onBackgroundPick('sunset')" title="Sunset"></button>
+            <button type="button" class="bg-swatch bg-swatch-plain" data-bg="plain" onclick="onBackgroundPick('plain')" title="Plain"></button>
+          </div>
+        </div>
+        <div class="appearance-preview" id="appearance-preview-overview" style="margin-top:14px;"></div>
+        <p class="field-note">Changes here save immediately — no need to hit Save. The graphic and background also show up together in the Chat tab and in Settings.</p>
+      </div>
+
+      <div class="overview-section">
+        <h2>To-dos</h2>
+        <div id="overview-todo-empty" class="center-msg" style="padding:14px 0;">Nothing scheduled yet.</div>
+        <div id="overview-todo-list"></div>
+      </div>
+
+      <div class="overview-section">
+        <h2>Work calendar</h2>
+        <div class="cal-wrap">
+          <div class="cal-head">
+            <button class="btn-secondary" onclick="calShiftMonth(-1)">← </button>
+            <strong id="cal-month-label"></strong>
+            <button class="btn-secondary" onclick="calShiftMonth(1)">→</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-day-tasks" id="cal-day-tasks"></div>
+        </div>
+      </div>
     </div>
 
     <!-- LIVE VIEW TAB -->
@@ -280,7 +393,7 @@
         <option value="brisk-professional">Brisk, professional</option>
       </select>
       <h2>Appearance</h2>
-      <select id="pref-appearance" onchange="updateAppearancePreview()">
+      <select id="pref-appearance" onchange="document.getElementById('ov-pref-appearance').value = this.value; updateAppearancePreview();">
         <option value="classic-orb">Wireframe orb</option>
         <option value="minimal-icon">Minimal icon</option>
         <option value="friendly-avatar">Friendly avatar</option>
@@ -382,6 +495,7 @@
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
     if (name === "tasks") loadScheduledTasks();
     if (name === "ideas") loadGrowthIdeas();
+    if (name === "overview") { loadScheduledTasks(); loadUploads(); }
   }
 
   const MASTER_EMAIL = "reachdavid.work@gmail.com";
@@ -418,7 +532,9 @@
       }
       document.getElementById("pref-voice").value = data.voice || "warm-neutral";
       document.getElementById("pref-appearance").value = data.appearance || "classic-orb";
+      document.getElementById("ov-pref-appearance").value = data.appearance || "classic-orb";
       document.getElementById("pref-language").value = data.language || "en";
+      currentBackground = data.background || "midnight";
       updateAutoReadButton();
       updateMicButton();
       updateAppearancePreview();
@@ -427,6 +543,7 @@
       loadLearningQuestion();
       loadUploads();
       loadGrowthIdeas();
+      loadScheduledTasks();
     } catch (e) {
       show("state-no-account");
     }
@@ -516,10 +633,11 @@
   let recognizing = false;
 
   function updateMicButton() {
-    const btn = document.getElementById("chat-mic-btn");
-    if (!btn) return;
-    btn.classList.toggle("mic-active", recognizing);
-    btn.textContent = recognizing ? "⏹️" : "🎤";
+    document.querySelectorAll(".js-mic-btn").forEach(btn => {
+      btn.classList.toggle("mic-active", recognizing);
+      const isChatBtn = btn.id === "chat-mic-btn";
+      btn.textContent = isChatBtn ? (recognizing ? "⏹️" : "🎤") : (recognizing ? "⏹️ Listening…" : "🎤 Voice input (mic)");
+    });
   }
 
   function toggleMic() {
@@ -550,10 +668,10 @@
   try { autoReadEnabled = localStorage.getItem("genieAutoRead") === "1"; } catch (e) { /* ignore */ }
 
   function updateAutoReadButton() {
-    const btn = document.getElementById("auto-read-btn");
-    if (!btn) return;
-    btn.classList.toggle("active", autoReadEnabled);
-    btn.textContent = autoReadEnabled ? "🔊 Reading replies aloud" : "🔇 Read replies aloud";
+    document.querySelectorAll(".js-auto-read-btn").forEach(btn => {
+      btn.classList.toggle("active", autoReadEnabled);
+      btn.textContent = autoReadEnabled ? "🔊 Reading replies aloud" : "🔇 Read replies aloud";
+    });
   }
 
   function toggleAutoRead() {
@@ -567,22 +685,63 @@
     "minimal-icon": "Minimal icon — coming soon",
     "friendly-avatar": "Friendly avatar — coming soon",
   };
+  let currentBackground = "midnight";
+  const BG_CLASSES = ["bg-aurora", "bg-sunset", "bg-plain"];
+
+  function bgClassFor(bg) {
+    return bg && bg !== "midnight" ? "bg-" + bg : "";
+  }
+
+  function applyBackgroundClasses() {
+    const cls = bgClassFor(currentBackground);
+    document.querySelectorAll(".genie-avatar-row, .appearance-preview iframe").forEach(el => {
+      BG_CLASSES.forEach(c => el.classList.remove(c));
+      if (cls) el.classList.add(cls);
+    });
+    document.querySelectorAll(".bg-swatch").forEach(sw => {
+      sw.classList.toggle("selected", sw.dataset.bg === currentBackground);
+    });
+  }
 
   function updateAppearancePreview() {
     const val = document.getElementById("pref-appearance").value;
-    const box = document.getElementById("appearance-preview");
+    const boxes = [document.getElementById("appearance-preview"), document.getElementById("appearance-preview-overview")].filter(Boolean);
     const avatarRow = document.getElementById("genie-avatar-row");
     const avatarFrame = document.getElementById("genie-avatar");
-    if (!box) return;
-    if (val === "classic-orb") {
-      box.innerHTML = '<iframe src="orb.html" title="Genie appearance preview" loading="lazy" allowtransparency="true" scrolling="no"></iframe><span class="note">This is what your Genie looks like right now in the Chat tab.</span>';
-      if (avatarFrame) { if (!avatarFrame.getAttribute("src")) avatarFrame.setAttribute("src", "orb.html"); }
-      if (avatarRow) avatarRow.classList.remove("hidden");
-    } else {
-      const label = GENIE_APPEARANCE_LABELS[val] || "Not available yet";
-      box.innerHTML = '<div class="placeholder">' + label + '</div><span class="note">Pick "Wireframe orb" for the live version.</span>';
-      if (avatarRow) avatarRow.classList.add("hidden");
-    }
+    boxes.forEach(box => {
+      if (val === "classic-orb") {
+        box.innerHTML = '<iframe src="orb.html" title="Genie appearance preview" loading="lazy" allowtransparency="true" scrolling="no"></iframe><span class="note">This is what your Genie looks like right now in the Chat tab.</span>';
+      } else {
+        const label = GENIE_APPEARANCE_LABELS[val] || "Not available yet";
+        box.innerHTML = '<div class="placeholder">' + label + '</div><span class="note">Pick "Wireframe orb" for the live version.</span>';
+      }
+    });
+    if (avatarFrame) { if (!avatarFrame.getAttribute("src")) avatarFrame.setAttribute("src", "orb.html"); }
+    if (avatarRow) avatarRow.classList.toggle("hidden", val !== "classic-orb");
+    applyBackgroundClasses();
+  }
+
+  function onOverviewAppearanceChange() {
+    const val = document.getElementById("ov-pref-appearance").value;
+    document.getElementById("pref-appearance").value = val;
+    updateAppearancePreview();
+    saveAppearanceAndBackground();
+  }
+
+  function onBackgroundPick(bg) {
+    currentBackground = bg;
+    applyBackgroundClasses();
+    saveAppearanceAndBackground();
+  }
+
+  async function saveAppearanceAndBackground() {
+    try {
+      const setGenieClientPreferences = functions.httpsCallable("setGenieClientPreferences");
+      await setGenieClientPreferences({
+        appearance: document.getElementById("pref-appearance").value,
+        background: currentBackground,
+      });
+    } catch (e) { /* non-fatal — visible state already updated locally */ }
   }
 
   function voiceHintFor(pref) {
@@ -624,26 +783,31 @@
     });
   }
 
+  function setUploadStatus(text, isError) {
+    ["upload-status", "upload-status-overview"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.style.color = isError ? "var(--bad)" : "var(--faint)";
+    });
+  }
+
   async function handleFileUpload(evt) {
     const file = evt.target.files[0];
     if (!file) return;
-    const status = document.getElementById("upload-status");
     if (file.size > 8 * 1024 * 1024) {
-      status.textContent = "That file is too large (8MB max for now).";
-      status.style.color = "var(--bad)";
+      setUploadStatus("That file is too large (8MB max for now).", true);
       return;
     }
-    status.style.color = "var(--faint)";
-    status.textContent = "Uploading " + file.name + "…";
+    setUploadStatus("Uploading " + file.name + "…", false);
     try {
       const dataUrl = await fileToDataUrl(file);
       const uploadGenieFile = functions.httpsCallable("uploadGenieFile");
       await uploadGenieFile({ dataUrl, fileName: file.name });
-      status.textContent = "Uploaded " + file.name + " — your Genie can now reference it in chat.";
+      setUploadStatus("Uploaded " + file.name + " — your Genie can now reference it in chat.", false);
       loadUploads();
     } catch (e) {
-      status.textContent = "Upload failed — try again.";
-      status.style.color = "var(--bad)";
+      setUploadStatus("Upload failed — try again.", true);
     } finally {
       evt.target.value = "";
     }
@@ -653,13 +817,15 @@
     try {
       const listGenieUploads = functions.httpsCallable("listGenieUploads");
       const res = await listGenieUploads();
-      const wrap = document.getElementById("file-chips");
-      wrap.innerHTML = "";
-      (res.data.uploads || []).forEach(u => {
-        const chip = document.createElement("span");
-        chip.className = "file-chip";
-        chip.innerHTML = "📄 <a href='" + u.url + "' target='_blank' rel='noopener'>" + escapeHtml(u.fileName) + "</a>";
-        wrap.appendChild(chip);
+      const uploads = res.data.uploads || [];
+      document.querySelectorAll(".file-chips-target").forEach(wrap => {
+        wrap.innerHTML = "";
+        uploads.forEach(u => {
+          const chip = document.createElement("span");
+          chip.className = "file-chip";
+          chip.innerHTML = "📄 <a href='" + u.url + "' target='_blank' rel='noopener'>" + escapeHtml(u.fileName) + "</a>";
+          wrap.appendChild(chip);
+        });
       });
     } catch (e) { /* non-fatal */ }
   }
@@ -695,26 +861,117 @@
   }
 
   // ── Scheduled work ───────────────────────────────────────────────────
+  let cachedScheduledTasks = [];
+
   async function loadScheduledTasks() {
     try {
       const listGenieScheduledTasks = functions.httpsCallable("listGenieScheduledTasks");
       const res = await listGenieScheduledTasks();
       const tasks = res.data.tasks || [];
+      cachedScheduledTasks = tasks;
       const list = document.getElementById("task-list");
       const empty = document.getElementById("tasks-empty");
       list.innerHTML = "";
-      if (!tasks.length) { empty.classList.remove("hidden"); return; }
-      empty.classList.add("hidden");
-      tasks.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "task-item";
-        div.innerHTML =
-          "<div class='task-title'>" + escapeHtml(t.title) + "</div>" +
-          (t.details ? "<div class='task-details'>" + escapeHtml(t.details) + "</div>" : "") +
-          "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>";
-        list.appendChild(div);
-      });
+      if (!tasks.length) { empty.classList.remove("hidden"); } else {
+        empty.classList.add("hidden");
+        tasks.forEach(t => {
+          const div = document.createElement("div");
+          div.className = "task-item";
+          div.innerHTML =
+            "<div class='task-title'>" + escapeHtml(t.title) + "</div>" +
+            (t.details ? "<div class='task-details'>" + escapeHtml(t.details) + "</div>" : "") +
+            "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>";
+          list.appendChild(div);
+        });
+      }
+      renderOverviewTodos(tasks);
+      renderCalendar();
     } catch (e) { /* non-fatal */ }
+  }
+
+  // ── Overview: to-dos ──────────────────────────────────────────────────
+  function renderOverviewTodos(tasks) {
+    const list = document.getElementById("overview-todo-list");
+    const empty = document.getElementById("overview-todo-empty");
+    if (!list || !empty) return;
+    list.innerHTML = "";
+    if (!tasks.length) { empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    tasks.forEach(t => {
+      const row = document.createElement("div");
+      row.className = "todo-row" + (t.status === "done" ? " todo-done" : "");
+      row.innerHTML =
+        "<span class='todo-title'>" + escapeHtml(t.title) + (t.scheduledFor ? " <span style='color:var(--faint)'>(" + escapeHtml(t.scheduledFor) + ")</span>" : "") + "</span>" +
+        "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>";
+      list.appendChild(row);
+    });
+  }
+
+  // ── Overview: work calendar ───────────────────────────────────────────
+  let calViewDate = new Date();
+
+  function calShiftMonth(delta) {
+    calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + delta, 1);
+    renderCalendar();
+  }
+
+  function tasksByDate() {
+    const map = {};
+    cachedScheduledTasks.forEach(t => {
+      if (!t.scheduledFor) return;
+      (map[t.scheduledFor] = map[t.scheduledFor] || []).push(t);
+    });
+    return map;
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById("cal-grid");
+    const label = document.getElementById("cal-month-label");
+    if (!grid || !label) return;
+    const year = calViewDate.getFullYear();
+    const month = calViewDate.getMonth();
+    label.textContent = calViewDate.toLocaleString(undefined, { month: "long", year: "numeric" });
+    const byDate = tasksByDate();
+    const firstDow = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    grid.innerHTML = "";
+    ["S", "M", "T", "W", "T", "F", "S"].forEach(d => {
+      const el = document.createElement("div");
+      el.className = "cal-dow";
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement("div");
+      el.className = "cal-day cal-empty";
+      grid.appendChild(el);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+      const dayTasks = byDate[dateStr] || [];
+      const el = document.createElement("div");
+      el.className = "cal-day" + (dayTasks.length ? " cal-has-tasks" : "") + (dateStr === todayStr ? " cal-today" : "");
+      el.textContent = day;
+      if (dayTasks.length) {
+        el.innerHTML += "<span class='cal-dot'></span>";
+        el.onclick = () => showCalDayTasks(dateStr, dayTasks);
+      }
+      grid.appendChild(el);
+    }
+  }
+
+  function showCalDayTasks(dateStr, tasks) {
+    const wrap = document.getElementById("cal-day-tasks");
+    if (!wrap) return;
+    wrap.innerHTML = "<div class='field-note' style='margin:0 0 8px;'><b>" + escapeHtml(dateStr) + "</b></div>" +
+      tasks.map(t =>
+        "<div class='task-item' style='margin-bottom:8px;'>" +
+        "<div class='task-title'>" + escapeHtml(t.title) + "</div>" +
+        (t.details ? "<div class='task-details'>" + escapeHtml(t.details) + "</div>" : "") +
+        "<span class='task-badge badge-" + (t.status || "scheduled") + "'>" + (t.status || "scheduled").replace("_", " ") + "</span>" +
+        "</div>"
+      ).join("");
   }
 
   // ── Growth ideas ─────────────────────────────────────────────────────
@@ -774,6 +1031,7 @@
       await setGenieClientPreferences({
         voice: document.getElementById("pref-voice").value,
         appearance: document.getElementById("pref-appearance").value,
+        background: currentBackground,
         language: document.getElementById("pref-language").value,
       });
       msg.textContent = "Saved.";

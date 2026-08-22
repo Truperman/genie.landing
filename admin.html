@@ -158,6 +158,9 @@
             <option value="blocked">Blocked</option>
           </select>
         </div>
+        <div><label>Scheduled for (optional)</label>
+          <input type="date" id="task-scheduled-for" style="width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:13.5px;">
+        </div>
         <div style="grid-column:1/-1"><label>Title</label><input type="text" id="task-title" placeholder="e.g. Research 5 local competitors"></div>
       </div>
       <div style="margin-top:12px"><label>Details</label><textarea id="task-details" placeholder="What this task covers"></textarea></div>
@@ -458,11 +461,12 @@
       const res = await call('listGenieScheduledTasks')({ uid });
       const tasks = res.data.tasks || [];
       if (!tasks.length) { el.innerHTML = '<div class="empty">Nothing scheduled for this client yet.</div>'; return; }
-      let html = '<table><tr><th>Title</th><th>Details</th><th>Status</th><th></th></tr>';
+      let html = '<table><tr><th>Title</th><th>Details</th><th>Scheduled for</th><th>Status</th><th></th></tr>';
       tasks.forEach(t => {
         html += `<tr>
           <td>${esc(t.title)}</td>
           <td>${esc(t.details || '—')}</td>
+          <td>${esc(t.scheduledFor || '—')}</td>
           <td><span class="pill ${t.status === 'done' ? 'on' : 'off'}">${esc(t.status || 'scheduled')}</span></td>
           <td>
             <select data-id="${t.id}" class="task-status-select" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:12.5px;">
@@ -479,7 +483,7 @@
         sel.disabled = true;
         const t = tasks.find(x => x.id === sel.dataset.id);
         try {
-          await call('queueGenieScheduledTask')({ uid, id: sel.dataset.id, title: t.title, details: t.details, status: sel.value });
+          await call('queueGenieScheduledTask')({ uid, id: sel.dataset.id, title: t.title, details: t.details, status: sel.value, scheduledFor: t.scheduledFor || null });
         } catch (e) { alert(e.message); }
         sel.disabled = false;
       }));
@@ -499,9 +503,11 @@
         uid, title,
         details: document.getElementById('task-details').value.trim(),
         status: document.getElementById('task-status').value,
+        scheduledFor: document.getElementById('task-scheduled-for').value || null,
       });
       document.getElementById('task-title').value = '';
       document.getElementById('task-details').value = '';
+      document.getElementById('task-scheduled-for').value = '';
       msg.textContent = 'Queued.';
       loadClientTasks();
     } catch (e) { msg.textContent = 'Error: ' + e.message; }
