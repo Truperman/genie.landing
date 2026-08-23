@@ -760,10 +760,18 @@
     log.appendChild(thinkingDiv);
     log.scrollTop = log.scrollHeight;
     input.value = "";
+    // Real browser-automation tasks (the droplet actually clicking/scrolling/
+    // typing) routinely take a couple minutes — this used to time out at 170s
+    // and silently fall back to a generic reply. Now matches the backend's
+    // 540s function timeout, and updates the "Thinking…" bubble along the
+    // way so a long task doesn't look stalled/broken.
+    const reassureTimers = [
+      setTimeout(() => { if (thinkingDiv.isConnected) thinkingDiv.textContent = "Still working on it — real browser tasks can take a couple minutes…"; }, 15000),
+      setTimeout(() => { if (thinkingDiv.isConnected) thinkingDiv.textContent = "Still going — this one's taking a bit, but it hasn't failed. Hang tight…"; }, 60000),
+      setTimeout(() => { if (thinkingDiv.isConnected) thinkingDiv.textContent = "Almost there, or trying an alternate approach — thanks for your patience…"; }, 180000),
+    ];
     try {
-      // Real (droplet-routed) replies can take up to ~100s, well past the
-      // SDK's 70s default callable timeout — allow up to 170s.
-      const genieChatSend = functions.httpsCallable("genieChatSend", { timeout: 170000 });
+      const genieChatSend = functions.httpsCallable("genieChatSend", { timeout: 530000 });
       const res = await genieChatSend({ message: text });
       thinkingDiv.remove();
       const replyDiv = document.createElement("div");
@@ -776,6 +784,7 @@
       thinkingDiv.remove();
       err.textContent = "Couldn't send that — try again in a moment.";
     } finally {
+      reassureTimers.forEach(clearTimeout);
       btn.disabled = false;
     }
   }
