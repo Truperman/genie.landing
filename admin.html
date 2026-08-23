@@ -350,20 +350,22 @@
       customersClientsByEmail = {};
       clients.forEach(c => { if (c.email) customersClientsByEmail[c.email.toLowerCase()] = c; });
       if (!orders.length) { el.innerHTML = '<div class="empty">No Genie customers yet.</div>'; return; }
-      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th>Dashboard</th><th>Skills &amp; access</th></tr>';
+      let html = '<table><tr><th>Business</th><th>Email</th><th>Tier</th><th>Onboarded</th><th>Dashboard</th><th>Skills &amp; access</th><th>Phone line</th></tr>';
       orders.forEach((o, i) => {
         const business = esc(o.onboardPayload?.business || o.email || '—');
         const client = customersClientsByEmail[(o.email || '').toLowerCase()];
         html += `<tr class="row" data-i="${i}"><td><button class="name-link" data-preview-email="${esc(o.email || '')}">${business}</button></td><td>${esc(o.email || '—')}</td>` +
           `<td>${esc(o.tier || '—')}</td><td><span class="pill ${o.onboarded ? 'on' : 'off'}">${o.onboarded ? 'yes' : 'no'}</span></td>` +
           `<td>${dashboardCellHtml(client, o)}</td>` +
-          `<td>${skillsCellHtml(client)}</td></tr>` +
-          `<tr><td colspan="6" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>`;
+          `<td>${skillsCellHtml(client)}</td>` +
+          `<td>${phoneCellHtml(client)}</td></tr>` +
+          `<tr><td colspan="7" style="border:none;padding:0"><div class="detail" id="detail-${i}"></div></td></tr>` +
+          `<tr><td colspan="7" style="border:none;padding:0"><div class="detail" id="phone-detail-${i}"></div></td></tr>`;
       });
       html += '</table>';
       el.innerHTML = html;
       el.querySelectorAll('tr.row').forEach(r => r.addEventListener('click', (evt) => {
-        if (evt.target.closest('[data-no-row-toggle]')) return; // clicks inside Dashboard/Skills cells don't expand the row
+        if (evt.target.closest('[data-no-row-toggle]')) return; // clicks inside Dashboard/Skills/Phone cells don't expand the row
         toggleDetail(r, orders[r.dataset.i]);
       }));
       el.querySelectorAll('button[data-preview-email]').forEach(b => b.addEventListener('click', (evt) => {
@@ -372,6 +374,7 @@
       }));
       wireDashboardButtons(el, orders);
       wireSkillChips(el);
+      wirePhoneButtons(el);
     } catch (e) {
       el.innerHTML = '<div class="empty">Could not load customers: ' + esc(e.message) + '</div>';
     }
@@ -393,6 +396,84 @@
     return '<div data-no-row-toggle style="display:flex; flex-wrap:wrap; gap:6px;">' + SKILLS.map(s =>
       `<button class="pill skill-chip ${skills[s.key] !== false ? 'on' : 'off'}" style="border:none; cursor:pointer;" data-uid="${client.uid}" data-skill-key="${s.key}" data-skill-value="${skills[s.key] !== false ? 'false' : 'true'}" title="Click to turn ${skills[s.key] !== false ? 'off' : 'on'}">${s.label}</button>`
     ).join('') + '</div>';
+  }
+
+  // Phone = each client's own Telnyx "Genie Phone Line" number, billed
+  // pay-as-you-go (per call/text, biweekly via Stripe — see
+  // provisionGeniePhoneNumber/getClientCommLogs in index.js). No plan/
+  // prepayment to configure here, just: assign a number, optionally tell it
+  // which numbers count as "interior" (owner/staff), and view the log.
+  function phoneCellHtml(client) {
+    if (!client) return '<span class="note">Activate dashboard first</span>';
+    if (!client.phone || !client.phone.number) {
+      return `<button class="btn small" data-no-row-toggle data-provision-uid="${client.uid}">Get a number</button>`;
+    }
+    return `<span class="pill on">${esc(client.phone.number)}</span><br>
+      <button class="btn small" style="margin-top:6px" data-no-row-toggle data-manage-phone-uid="${client.uid}">Manage / view log</button>`;
+  }
+
+  function wirePhoneButtons(el) {
+    el.querySelectorAll('button[data-provision-uid]').forEach(b => b.addEventListener('click', async (evt) => {
+      evt.stopPropagation();
+      b.disabled = true; b.textContent = 'Getting number…';
+      try {
+        await call('provisionGeniePhoneNumber')({ uid: b.dataset.provisionUid });
+        loadCustomers();
+      } catch (e) { alert(e.message); b.disabled = false; b.textContent = 'Get a number'; }
+    }));
+    el.querySelectorAll('button[data-manage-phone-uid]').forEach(b => b.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      const row = b.closest('tr.row');
+      togglePhoneDetail(row.dataset.i, b.dataset.managePhoneUid);
+    }));
+  }
+
+  async function togglePhoneDetail(i, uid) {
+    const d = document.getElementById('phone-detail-' + i);
+    const open = d.classList.contains('open');
+    document.querySelectorAll('.detail.open').forEach(x => x.classList.remove('open'));
+    if (open) return;
+    d.classList.add('open');
+    d.innerHTML = 'Loading phone line…';
+    const client = Object.values(customersClientsByEmail).find(c => c.uid === uid);
+    const interior = (client && client.phone && client.phone.interiorNumbers || []).join(', ');
+    try {
+      const res = await call('getClientCommLogs')({ uid, limit: 100 });
+      const logs = res.data.logs || [];
+      const logsHtml = logs.length
+        ? logs.map(l => {
+            const isCall = l.type === 'call';
+            const detail = isCall ? Math.round((l.durationSeconds || 0) / 6) / 10 + ' min' : (l.segments || 1) + ' seg';
+            const when = l.createdAt && l.createdAt.seconds ? new Date(l.createdAt.seconds * 1000).toLocaleString() : '';
+            return `<div style="padding:4px 0;border-bottom:1px solid var(--border,#333);font-size:12.5px;">` +
+              `${isCall ? '📞' : '💬'} ${esc(l.direction)} · <b class="${l.label === 'interior' ? 'note' : ''}">${esc(l.label)}</b> · ` +
+              `${esc(l.otherPartyNumber || '')} · ${detail} · $${(l.billedCost || 0).toFixed(2)} · ${esc(when)}</div>`;
+          }).join('')
+        : '<span class="note">No calls or texts logged yet.</span>';
+      d.innerHTML = `
+        Last 14 days billed: <b>$${(res.data.currentCycleTotal || 0).toFixed(2)}</b> (pay-as-you-go, no prepayment — invoiced biweekly via Stripe)
+        <div style="margin:8px 0;">
+          <label class="note">Interior numbers (owner/staff — comma-separated, E.164 e.g. +15551234567):</label><br>
+          <input type="text" id="interior-input-${i}" value="${esc(interior)}" style="width:340px;max-width:100%;">
+          <button class="btn small" id="interior-save-${i}">Save</button>
+          <span class="save-msg" id="interior-msg-${i}"></span>
+        </div>
+        <div style="max-height:260px;overflow-y:auto;margin-top:8px;">${logsHtml}</div>`;
+      document.getElementById('interior-save-' + i).addEventListener('click', async () => {
+        const btn = document.getElementById('interior-save-' + i);
+        const msg = document.getElementById('interior-msg-' + i);
+        const nums = document.getElementById('interior-input-' + i).value.split(',').map(s => s.trim()).filter(Boolean);
+        btn.disabled = true; msg.textContent = 'Saving…';
+        try {
+          await call('setGenieInteriorContacts')({ uid, interiorNumbers: nums });
+          msg.textContent = 'Saved.';
+          loadCustomers();
+        } catch (e) { msg.textContent = 'Error: ' + e.message; }
+        btn.disabled = false;
+      });
+    } catch (e) {
+      d.innerHTML = '<span class="note">Could not load phone line: ' + esc(e.message) + '</span>';
+    }
   }
 
   function wireDashboardButtons(el, orders) {

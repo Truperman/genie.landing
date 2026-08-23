@@ -245,6 +245,9 @@
   .task-item{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
   .task-title{ font-size:14px; font-weight:600; margin-bottom:3px; }
   .task-details{ font-size:12.5px; color:var(--muted); line-height:1.5; margin-bottom:6px; }
+  .comm-chip{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 8px; border-radius:999px; margin-left:6px; vertical-align:middle; }
+  .chip-exterior{ background:oklch(0.28 0.09 250 / 0.35); color:oklch(0.85 0.1 250); }
+  .chip-interior{ background:oklch(0.3 0.09 150 / 0.35); color:oklch(0.85 0.12 150); }
   .task-badge{ display:inline-block; font-size:11px; padding:3px 9px; border-radius:999px; text-transform:capitalize; }
   .badge-scheduled{ background:oklch(0.7 0.1 260 / 0.18); color:var(--accent); }
   .badge-in_progress{ background:oklch(0.75 0.15 70 / 0.18); color:var(--warn); }
@@ -366,6 +369,7 @@
       <button class="tab-btn" data-tab="overview" onclick="switchTab('overview')">Overview</button>
       <button class="tab-btn" data-tab="live" data-skill="liveView" onclick="switchTab('live')">Live View</button>
       <button class="tab-btn" data-tab="tasks" data-skill="scheduledWork" onclick="switchTab('tasks')">Scheduled Work</button>
+      <button class="tab-btn" data-tab="comms" data-skill="phone" onclick="switchTab('comms')">Comms</button>
       <button class="tab-btn" data-tab="ideas" data-skill="growthIdeas" onclick="switchTab('ideas')">Growth Ideas</button>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div>
@@ -496,6 +500,15 @@
       <div class="task-list" id="task-list"></div>
     </div>
 
+    <!-- COMMS TAB -->
+    <div class="tab-panel" id="panel-comms">
+      <p class="sub" style="margin-bottom:6px;">Every call and text through your Genie Phone Line, labeled <b>exterior</b> (your customers) or <b>interior</b> (you/your staff) — billed as you go, no prepayment.</p>
+      <div id="comms-number-row" style="margin-bottom:14px; font-size:14px; color:var(--text-dim);"></div>
+      <div id="comms-cycle-total" style="margin-bottom:14px; padding:10px 14px; border-radius:10px; background:var(--surface-2); display:inline-block;"></div>
+      <div id="comms-empty" class="center-msg" style="padding:20px 0;">No calls or texts yet.</div>
+      <div class="task-list" id="comms-list"></div>
+    </div>
+
     <!-- GROWTH IDEAS TAB -->
     <div class="tab-panel" id="panel-ideas">
       <p class="sub" style="margin-bottom:14px;">Your Genie keeps a running list of ways to improve and grow the business — it updates automatically as it learns more about you, and you can also refresh it any time.</p>
@@ -617,6 +630,7 @@
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
     if (name === "tasks") loadScheduledTasks();
     if (name === "ideas") loadGrowthIdeas();
+    if (name === "comms") loadCommLogs();
     if (name === "overview") { loadScheduledTasks(); loadUploads(); }
   }
 
@@ -626,8 +640,9 @@
   // when that skill is off; if the tab a client is currently sitting on
   // just got hidden out from under them, fall back to Chat (or Home, if
   // even chat is off).
-  function applySkillGates(skills) {
+  function applySkillGates(skills, phone) {
     const s = Object.assign({ chat: true, voice: true, liveView: true, fileUpload: true, scheduledWork: true, growthIdeas: true }, skills || {});
+    s.phone = !!(phone && phone.status === "active" && phone.number);
     document.querySelectorAll("[data-skill]").forEach(el => {
       el.classList.toggle("hidden", s[el.dataset.skill] === false);
     });
@@ -675,7 +690,7 @@
       document.getElementById("ov-pref-appearance").value = data.appearance || "classic-orb";
       document.getElementById("pref-language").value = data.language || "en";
       currentBackground = data.background || "midnight";
-      applySkillGates(data.skills);
+      applySkillGates(data.skills, data.phone);
       updateAutoReadButton();
       updateMicButton();
       updateAppearancePreview();
@@ -1221,6 +1236,53 @@
       msg.textContent = "Couldn't refresh — try again.";
     } finally {
       btn.disabled = false;
+    }
+  }
+
+  // ── Comms (Genie Phone Line) ────────────────────────────────────────
+  function commLogItemHtml(log) {
+    const isCall = log.type === "call";
+    const icon = isCall ? "📞" : "💬";
+    const dirLabel = log.direction === "inbound" ? "Inbound" : "Outbound";
+    const labelClass = log.label === "interior" ? "chip-interior" : "chip-exterior";
+    const detail = isCall
+      ? Math.round((log.durationSeconds || 0) / 6) / 10 + " min"
+      : (log.segments || 1) + (log.segments === 1 ? " segment" : " segments");
+    const when = log.createdAt && log.createdAt.seconds
+      ? new Date(log.createdAt.seconds * 1000).toLocaleString()
+      : "";
+    const cost = "$" + (log.billedCost || 0).toFixed(2);
+    return "<div class='task-item'>" +
+      "<div class='task-title'>" + icon + " " + dirLabel + " " + (isCall ? "call" : "text") +
+      " <span class='comm-chip " + labelClass + "'>" + escapeHtml(log.label || "exterior") + "</span></div>" +
+      "<div class='task-details'>" + escapeHtml(log.otherPartyNumber || "") + " · " + detail + " · " + cost +
+      (when ? " · " + escapeHtml(when) : "") + "</div>" +
+      "</div>";
+  }
+
+  async function loadCommLogs() {
+    const empty = document.getElementById("comms-empty");
+    const list = document.getElementById("comms-list");
+    const numberRow = document.getElementById("comms-number-row");
+    const cycleTotal = document.getElementById("comms-cycle-total");
+    numberRow.textContent = (dash.phone && dash.phone.number) ? "Your Genie Phone Line: " + dash.phone.number : "";
+    try {
+      const getMyCommLogs = functions.httpsCallable("getMyCommLogs");
+      const res = await getMyCommLogs({ limit: 200 });
+      const logs = res.data.logs || [];
+      cycleTotal.innerHTML = "Last 14 days: <b>$" + (res.data.currentCycleTotal || 0).toFixed(2) +
+        "</b> <span style='color:var(--text-dim);'>(billed as it happens — your Stripe invoice may run on its own exact biweekly cycle)</span>";
+      list.innerHTML = "";
+      if (!logs.length) { empty.classList.remove("hidden"); return; }
+      empty.classList.add("hidden");
+      logs.forEach(log => {
+        const div = document.createElement("div");
+        div.innerHTML = commLogItemHtml(log);
+        list.appendChild(div.firstElementChild);
+      });
+    } catch (e) {
+      empty.classList.remove("hidden");
+      empty.textContent = "Couldn't load communications yet.";
     }
   }
 
