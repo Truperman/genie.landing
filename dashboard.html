@@ -252,6 +252,9 @@
       <label for="password">Password</label>
       <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
       <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign in</button>
+      <p class="sub" style="margin-top:14px; text-align:center;">
+        <a href="#" id="forgot-link" onclick="doForgotPassword(); return false;" style="color:var(--accent-2); text-decoration:underline; cursor:pointer;">Forgot your password?</a>
+      </p>
     </div>
   </div>
 
@@ -541,6 +544,26 @@
           : "Couldn't sign in — try again in a moment.";
       })
       .finally(() => { btn.disabled = false; });
+  }
+
+  function doForgotPassword() {
+    const email = document.getElementById("email").value.trim();
+    const err = document.getElementById("login-err");
+    err.style.color = "";
+    if (!email) { err.textContent = "Type your email above first, then click \"Forgot your password?\" again."; return; }
+    const link = document.getElementById("forgot-link");
+    link.textContent = "Sending…";
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        err.style.color = "var(--accent-2)";
+        err.textContent = "Check " + email + " for a link to set a new password (check spam too).";
+      })
+      .catch((e) => {
+        // Don't reveal whether the email exists — same generic message either way.
+        err.style.color = "var(--accent-2)";
+        err.textContent = "If an account exists for " + email + ", a reset link is on its way (check spam too).";
+      })
+      .finally(() => { link.textContent = "Forgot your password?"; });
   }
 
   function doLogout() {
